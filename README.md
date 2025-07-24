@@ -6,9 +6,11 @@
 <h4 align="center"><s>Make Danbooru Great Again</s></h4>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/script%20count-14-brightgreen?style=flat-square">
+  &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
-  <img src="https://img.shields.io/badge/scripts-14-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/github/last-commit/notsibyl/danbooru/main?style=flat-square">
 </p>
 
 ## Installation
@@ -137,7 +139,7 @@ You can prevent the image from moving by pressing the Ctrl or Alt key while addi
 > [!TIP]
 > If you've installed the [More Tooltips](#speech_balloon-more-tooltips), this one can be skipped.
 
-Some users don't like to add posts to their favorites may add them to their favorite groups.\
+Some users don't like adding posts to their favorites may add them to their favorite groups.\
 This simple userscript shows how many public favorite groups the current post has been added to.
 
 #### [Install](/src/favgroup-count.user.js?raw=1)

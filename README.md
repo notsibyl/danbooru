@@ -78,16 +78,16 @@ This script does not work in browsers that do not support the vibration API (e.g
 
 #### [Install](/src/vote-favorite-vibrate.user.js?raw=1)
 
-### 🔍 Sticky Search Box
+### 🔍 Sticky Search Bar
 
-Makes the search box stick to the top of the page.
+Makes the search bar stick to the top of the page.
 
 I only recently realized this is actually a small feature from [Danbooru EX](https://danbooru.donmai.us/forum_topics/13167). However, this version includes some improvements:
 
 * Better experience on mobile devices.
 * Fixed the autocomplete dropdown menu.
 
-[Install](/src/sticky-search-box.user.js?raw=1)
+[Install](/src/sticky-search-bar.user.js?raw=1)
 
 ### 💾 Auto Saver
 

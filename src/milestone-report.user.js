@@ -11,7 +11,7 @@
 // @match       *://*.donmai.us/users/*
 // @match       *://*.donmai.us/counts/posts*
 // @match       *://*.donmai.us/profile
-// @grant       none
+// @grant       GM_addStyle
 // @run-at      document-end
 // ==/UserScript==
 
@@ -96,9 +96,9 @@ const milestoneReport = {
       if (e.target === this.container) this.container.hidden = true;
     });
 
-    const style = document.createElement("style");
-    style.textContent = `#milestone-list td,#milestone-list th,#ordinal-number{text-align:center}#milestone-modal,#milestone-modal .content{max-height:90vh}#milestone-modal{overflow:hidden;padding:10px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background-color:var(--body-background-color);border-radius:4px;width:min(90vw,490px);box-shadow:0 0 20px rgba(0,0,0,.3)}#milestone-modal .content{overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:flex-start;gap:10px}#milestone-modal button{width:5rem;padding:.15rem 1em}#ordinal-number{width:5rem;appearance:textfield}#ordinal-number::-webkit-inner-spin-button,#ordinal-number::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}@media (prefers-color-scheme:dark){#milestone-modal{border:1px solid #444}}`;
-    document.head.appendChild(style);
+    GM_addStyle(
+      "#milestone-list td,#milestone-list th,#ordinal-number{text-align:center}#milestone-modal,#milestone-modal .content{max-height:90vh}#milestone-modal{overflow:hidden;padding:10px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background-color:var(--body-background-color);border-radius:4px;width:min(90vw,490px);box-shadow:0 0 20px rgba(0,0,0,.3)}#milestone-modal .content{overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:flex-start;gap:10px}#milestone-modal button{width:5rem;padding:.15rem 1em}#ordinal-number{width:5rem;appearance:textfield}#ordinal-number::-webkit-inner-spin-button,#ordinal-number::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}@media (prefers-color-scheme:dark){#milestone-modal{border:1px solid #444}}"
+    );
 
     this.container.innerHTML =
       '<div id="milestone-modal"><div class="content"><h1>Milestone Report</h1><div id="milestone-subtitle">Fetching data...</div><label><input type="number" id="ordinal-number" min="0" step="1" value="100">&nbsp;<span>th</span> post is:&nbsp;</label><button>Find</button>' +

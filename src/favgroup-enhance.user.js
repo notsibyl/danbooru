@@ -9,7 +9,7 @@
 // @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/favgroup-count.user.js
 // @match       *://*.donmai.us/posts/*
 // @match       *://*.donmai.us/favorite_groups/*/edit
-// @grant       none
+// @grant       GM_addStyle
 // @run-at      document-end
 // ==/UserScript==
 
@@ -36,9 +36,8 @@ if (controller === "favorite-groups" && action === "edit") {
   let noticeSearchBar = document.querySelector(".post-notice-search"),
     favBars = noticeSearchBar?.querySelectorAll(".favgroup-navbar") || [];
   if (favBars.length) {
-    document.head.insertAdjacentHTML(
-      "beforeend",
-      `<style>.post-notice-search>.favgroup-navbar{display:flex;align-items:center}.favgroup-navbar>.favgroup-name{white-space:normal!important}.favgroup-navbar:hover .fav-remove-link{opacity:1}.favgroup-navbar .fav-remove-link{opacity:0}.fav-remove-link{color:var(--button-danger-background-color)}.fav-remove-link:hover{color:var(--button-danger-hover-background-color)}</style>`
+    GM_addStyle(
+      ".post-notice-search>.favgroup-navbar{display:flex;align-items:center}.favgroup-navbar>.favgroup-name{white-space:normal!important}.favgroup-navbar:hover .fav-remove-link{opacity:1}.favgroup-navbar .fav-remove-link{opacity:0}.fav-remove-link{color:var(--button-danger-background-color)}.fav-remove-link:hover{color:var(--button-danger-hover-background-color)}"
     );
     const iconUri = document.querySelector("a#close-notice-link use").href.baseVal.split("#")[0];
     const postId = document.body.dataset.postId;
@@ -62,7 +61,7 @@ if (controller === "favorite-groups" && action === "edit") {
             if (matched) {
               const url = encodeURI(`/posts?tags=favgroup:"${matched[2]}"`);
               const text = matched[1] + `<a href="${url}">${matched[2]}</a>`;
-              unsafeWindow.Danbooru.notice(text);
+              Danbooru.notice(text);
               fav.remove();
               if (noticeSearchBar.children.length === 0) noticeSearchBar.remove();
             }

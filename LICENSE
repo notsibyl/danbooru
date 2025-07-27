@@ -30,3 +30,9 @@ ECharts (Apache License 2.0):
   The file `src/source-report.user.js` uses ECharts for chart rendering.  
   The ECharts library file is located at `lib/echarts.pieonly.min.js` and is licensed under the Apache License 2.0.  
   Please refer to https://github.com/apache/echarts for license details.
+
+DejaVu Fonts (Bitstream Vera Fonts Copyright, DejaVu Fonts License):
+  The file `src/dejavu-sans.user.js` uses DejaVu Sans.
+  The files in `fonts/DejaVuLGCSans*.woff2` are converted from the official DejaVu Sans TTF fonts.
+  DejaVu Sans is licensed under the DejaVu Fonts License.
+  For full license details, please visit: https://dejavu-fonts.github.io/License.html

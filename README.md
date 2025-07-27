@@ -6,7 +6,7 @@
 <h4 align="center"><s>Make Danbooru Great Again</s></h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-14-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-15-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -100,6 +100,17 @@ Save the content in textboxes on the upload page automatically, including tags a
 Displays position and size information while the user adjusts the note box via dragging or keyboard shortcuts.
 
 #### [Install](/src/note-box-change-notice.user.js?raw=1)
+
+### 🆎 DejaVu Sans
+
+> [!TIP]
+> This script is useful if your OS or browser lacks *Verdana* or forcibly aliases it to another font.\
+> *DejaVu Sans* is a similar-looking open-source alternative to *Verdana*.
+
+Replaces Danbooru’s default font *Verdana* with *DejaVu Sans*.\
+While you could normally change fonts via custom CSS, this script uses the `GM_getResourceURL` API to load fonts more efficiently.
+
+#### [Install](/src/dejavu-sans.user.js?raw=1)
 
 ### ✋ Tap to Show Tooltip
 

@@ -230,7 +230,7 @@ const sourceReport = {
         .then(resp => resp.json())
         .then(data => resolve(data))
         .catch(error => {
-          Danbooru.error(`Failed to fetch counts: ${error}`);
+          Danbooru.Notice.error(`Failed to fetch counts: ${error}`);
           console.error(tags);
           resolve({ counts: { posts: 0 } });
         });

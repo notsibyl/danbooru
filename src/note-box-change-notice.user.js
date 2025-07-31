@@ -20,7 +20,7 @@ const hook = methodName => {
     const prefix = id
       ? `<a href="/notes/${id}" target="_blank">Note #${id}</a> <a href="/note_versions?search%5Bnote_id%5D=${id}" target="_blank">»</a>`
       : "Current note";
-    unsafeWindow.Danbooru.Utility.notice(`${prefix} changed: <code style="background-color: transparent;">x: ${x}, y: ${y}, w: ${w}, h: ${h}</code></span>`);
+    unsafeWindow.Danbooru.Notice.info(`${prefix} changed: <code style="background-color: transparent;">x: ${x}, y: ${y}, w: ${w}, h: ${h}</code></span>`);
   };
 };
 

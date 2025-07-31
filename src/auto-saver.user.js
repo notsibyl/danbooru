@@ -8,7 +8,8 @@
 // @downloadURL https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/auto-saver.user.js
 // @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/auto-saver.user.js
 // @description Automatically save content from upload page
-// @match       *://*.donmai.us/*
+// @match       *://*.donmai.us/posts/*
+// @match       *://*.donmai.us/uploads/*
 // @grant       none
 // @run-at      document-end
 // ==/UserScript==
@@ -16,21 +17,22 @@
 (async () => {
   "use strict";
 
-  const pathname = location.pathname;
   const DB_STORE_NAME = "savedContentFromUploadPage";
+  const controller = document.body.dataset?.controller;
+  const action = document.body.dataset?.action;
   let assetId, db;
-  if (pathname.startsWith("/posts/") && !pathname.endsWith(".xml") && !pathname.endsWith(".json")) {
+  if (controller === "posts" && action === "show") {
     assetId =
       document.querySelector("#related-tags-container")?.getAttribute("data-media-asset-id") ||
       document.querySelector("#post-info-size > a[href^='/media_assets/']")?.href.split("/media_assets/")[1];
     await openDB();
     remove(assetId);
-  } else if (/^\/uploads\/\d+$/.test(pathname) || /^\/uploads\/\d+\/assets\/\d+/.test(pathname)) {
+  } else if (controller === "uploads" && action === "show") {
     const tagTextarea = document.querySelector("#post_tag_string");
 
-    Danbooru.Autocomplete._ic = Danbooru.Autocomplete.insert_completion;
+    const fn = Danbooru.Autocomplete.insert_completion;
     Danbooru.Autocomplete.insert_completion = function () {
-      this._ic(...arguments);
+      fn.apply(this, arguments);
       // jQuery trigger('input') does not fire native JavaScript input event
       tagTextarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
     };

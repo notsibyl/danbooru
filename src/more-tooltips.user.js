@@ -1,15 +1,16 @@
 // ==UserScript==
-// @name        More Tooltips
-// @author      Sibyl
-// @version     1.6
-// @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
-// @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
-// @homepageURL https://github.com/notsibyl/danbooru
-// @downloadURL https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/more-tooltips.user.js
-// @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/more-tooltips.user.js
-// @match       *://*.donmai.us/*
-// @grant       GM_addStyle
-// @run-at      document-end
+// @name          More Tooltips
+// @author        Sibyl
+// @version       1.6
+// @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
+// @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
+// @homepageURL   https://github.com/notsibyl/danbooru
+// @downloadURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/more-tooltips.user.js
+// @updateURL     https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/more-tooltips.user.js
+// @match         *://*.donmai.us/*
+// @exclude-match *://cdn.donmai.us/*
+// @grant         GM_addStyle
+// @run-at        document-end
 // // ==/UserScript==
 
 // Media assets preview settings

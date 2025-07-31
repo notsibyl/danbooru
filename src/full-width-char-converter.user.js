@@ -1,15 +1,16 @@
 // ==UserScript==
-// @name        Full-width Character Converter
-// @author      Sibyl
-// @version     1.1
-// @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
-// @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
-// @homepageURL https://github.com/notsibyl/danbooru
-// @downloadURL https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/full-width-char-converter.user.js
-// @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/full-width-char-converter.user.js
-// @match       https://*.donmai.us/*
-// @grant       none
-// @run-at      document-end
+// @name          Full-width Character Converter
+// @author        Sibyl
+// @version       1.1
+// @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
+// @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
+// @homepageURL   https://github.com/notsibyl/danbooru
+// @downloadURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/full-width-char-converter.user.js
+// @updateURL     https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/full-width-char-converter.user.js
+// @match         https://*.donmai.us/*
+// @exclude-match *://cdn.donmai.us/*
+// @grant         none
+// @run-at        document-end
 // ==/UserScript==
 
 function hasFullWidthSearchChar(data) {

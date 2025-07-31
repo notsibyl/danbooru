@@ -33,7 +33,7 @@ const saveConfig = () => localStorage.setItem("s4ba_config", JSON.stringify(conf
 GM_registerMenuCommand("🗑️ Remove local CSS", () => {
   localStorage.removeItem("s4ba_css");
   applyLocalCss();
-  Danbooru.Utility.notice("Local CSS removed.");
+  Danbooru.Notice.info("Local CSS removed.");
 });
 
 GM_registerMenuCommand("✍️ Manually fetch artists info", updateCustomCss);
@@ -48,7 +48,7 @@ const nextUpdateStr = () => {
 let menuId = GM_registerMenuCommand((config.autoUpdate ? "✔️" : "❌") + " Auto update " + nextUpdateStr(), function toggleAutoUpdate() {
   GM_unregisterMenuCommand(menuId);
   config.autoUpdate = !config.autoUpdate;
-  Danbooru.Utility.notice("Auto update banned artists info " + (config.autoUpdate ? "enabled. " + nextUpdateStr() : "disabled"));
+  Danbooru.Notice.info("Auto update banned artists info " + (config.autoUpdate ? "enabled. " + nextUpdateStr() : "disabled"));
   const prefix = config.autoUpdate ? "✔️" : "❌";
   menuId = GM_registerMenuCommand(prefix + " Auto Update " + nextUpdateStr(), toggleAutoUpdate);
   saveConfig();
@@ -62,13 +62,13 @@ if (version && config.version !== version) {
 } else if (config.autoUpdate && Date.now() - config.lastUpdate > preference.updateInterval) updateCustomCss();
 
 async function updateCustomCss() {
-  Danbooru.notice("Fetching banned artists info...");
+  Danbooru.Notice.info("Fetching banned artists info...");
   const data = await fetchBannedArtistData();
   if (data.length) {
     const newCss = generateCss(data);
     localStorage.setItem("s4ba_css", newCss);
     applyLocalCss();
-    Danbooru.Utility.notice(`CSS updated successfully. ${data.length} banned artists found.`);
+    Danbooru.Notice.info(`CSS updated successfully. ${data.length} banned artists found.`);
     config.lastUpdate = Date.now();
     saveConfig();
   }
@@ -93,13 +93,13 @@ async function fetchBannedArtistData() {
     const resp = await fetch("/artists.json?search[is_banned]=true&search[order]=created_at&only=id,name&limit=200&page=" + page);
     if (!resp.ok) {
       const msg = `Failed to get artist info: ${resp.status}`;
-      Danbooru.Utility.error(msg);
+      Danbooru.Notice.error(msg);
       throw new Error(msg);
     }
     const data = await resp.json();
     if (!Array.isArray(data)) {
       const msg = "Failed to get artist info: Expected an array in response";
-      Danbooru.Utility.error(msg);
+      Danbooru.Notice.error(msg);
       throw new Error(msg);
     }
     allData.push(...data);

@@ -62,7 +62,7 @@ const milestoneReport = {
     else this._milestoneData = data;
   },
   tooManyPostsWarning(n) {
-    if (n > 300000) Danbooru.notice("⚠ Due to the large number of posts being counted, the retrieved data may be incomplete.");
+    if (n > 300000) Danbooru.Notice.info("⚠ Due to the large number of posts being counted, the retrieved data may be incomplete.");
   },
   getPostIdHtml(pid) {
     return `<a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/${pid}" target="_blank">post #${pid}</a>`;
@@ -137,7 +137,7 @@ const milestoneReport = {
           const parent = this.ordinalInput.parentElement;
           parent.querySelector("a")?.remove();
           parent.insertAdjacentHTML("beforeend", this.getPostIdHtml(obj.pid));
-        } else Danbooru.error(`Failed to find post for ${value}${this.getOrdinalSuffix(value)} post.`);
+        } else Danbooru.Notice.error(`Failed to find post for ${value}${this.getOrdinalSuffix(value)} post.`);
         this.toggleReport.disabled = false;
         this.findButton.disabled = false;
       });
@@ -294,7 +294,7 @@ const milestoneReport = {
             return { num: n, pid: data?.[offset - 1]?.id };
           });
         } catch (e) {
-          Danbooru.error(`Failed to get post for ${milestones.map(x => x.n).join(",")}: ${e}`);
+          Danbooru.Notice.error(`Failed to get post for ${milestones.map(x => x.n).join(",")}: ${e}`);
           return milestones.map(({ n }) => ({ num: n, pid: null }));
         }
       });

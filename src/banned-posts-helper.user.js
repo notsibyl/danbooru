@@ -1,16 +1,17 @@
 // ==UserScript==
-// @name        Banned Posts Helper
-// @author      Sibyl
-// @version     0.16
-// @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
-// @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
-// @homepageURL https://github.com/notsibyl/danbooru
-// @downloadURL https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/banned-posts-helper.user.js
-// @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/banned-posts-helper.user.js
-// @description This post has been removed because of a takedown request.
-// @match       *://*.donmai.us/*
-// @grant       none
-// @run-at      document-end
+// @name          Banned Posts Helper
+// @author        Sibyl
+// @version       0.16
+// @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
+// @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
+// @homepageURL   https://github.com/notsibyl/danbooru
+// @downloadURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/banned-posts-helper.user.js
+// @updateURL     https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/banned-posts-helper.user.js
+// @description   This post has been removed because of a takedown request.
+// @match         *://*.donmai.us/*
+// @exclude-match *://cdn.donmai.us/*
+// @grant         none
+// @run-at        document-end
 // ==/UserScript==
 
 const CUSTOM_THUMBNAIL = null; // Custom thumbnail for banned posts with media asset ID
@@ -190,7 +191,7 @@ const bannedPostsHelper = {
               msg += ` ${bannedPostsCount} posts found in total.`;
             }
           }
-          unsafeWindow.Danbooru.Utility.notice(msg);
+          unsafeWindow.Danbooru.Notice.info(msg);
           this.fixBlacklist(postContainer);
         });
       })
@@ -414,7 +415,7 @@ const easierOneUp = {
     this.tagsField.value = tags.join(" ") + " ";
     this.tagsField.dispatchEvent(new InputEvent("input", { bubbles: true }));
     document.querySelector(".source-tab").click();
-    Danbooru.Utility.notice("Successfully copied tags. Please check the commentary tags.");
+    Danbooru.Notice.info("Successfully copied tags. Please check the commentary tags.");
   },
   addButton(post, div) {
     const setParent = document.createElement("a");

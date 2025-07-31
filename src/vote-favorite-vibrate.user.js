@@ -1,15 +1,16 @@
 // ==UserScript==
-// @name        Vibrate on Vote or Favorite
-// @author      Sibyl
-// @version     1.2
-// @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
-// @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
-// @homepageURL https://github.com/notsibyl/danbooru
-// @downloadURL https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/vote-favorite-vibrate.user.js
-// @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/vote-favorite-vibrate.user.js
-// @match       *://*.donmai.us/*
-// @grant       none
-// @run-at      document-end
+// @name          Vibrate on Vote or Favorite
+// @author        Sibyl
+// @version       1.3
+// @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
+// @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
+// @homepageURL   https://github.com/notsibyl/danbooru
+// @downloadURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/vote-favorite-vibrate.user.js
+// @updateURL     https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/vote-favorite-vibrate.user.js
+// @match         *://*.donmai.us/*
+// @exclude-match *://cdn.donmai.us/*
+// @grant         none
+// @run-at        document-end
 // ==/UserScript==
 
 (() => {
@@ -29,9 +30,9 @@
       if (patterns.some(test => test(url))) {
         this.addEventListener("readystatechange", function () {
           if (this.readyState !== XMLHttpRequest.DONE) return;
-          if (this.response.indexOf("Danbooru.Utility.error") === -1) {
+          if (this.response.indexOf("Danbooru.Notice.error") === -1) {
             if (navigator.vibrate) navigator.vibrate(50);
-            else Danbooru.Utility.error("Vibration API is not supported");
+            else Danbooru.Notice.error("Vibration API is not supported");
           }
         });
       }

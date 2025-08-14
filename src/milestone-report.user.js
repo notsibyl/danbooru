@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Milestone Report
 // @author      Sibyl
-// @version     0.4
+// @version     0.5
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -11,9 +11,20 @@
 // @match       *://*.donmai.us/users/*
 // @match       *://*.donmai.us/counts/posts*
 // @match       *://*.donmai.us/profile
-// @grant       GM_addStyle
 // @run-at      document-end
 // ==/UserScript==
+
+const createElement = (tag, props = {}) => {
+  const el = document.createElement(tag);
+  const { style, dataset, ..._props } = props;
+  Object.assign(el, _props);
+  Object.assign(el.dataset, dataset);
+  if (typeof style === "string") el.style.cssText = style;
+  else Object.assign(el.style, style);
+  return el;
+};
+
+const addStyle = css => document.head.appendChild(createElement("style", { textContent: css }));
 
 const milestoneReport = {
   notifyIfFewerThan: 100, // Notify if the next milestone is less than this number of posts.
@@ -83,27 +94,29 @@ const milestoneReport = {
     }
   },
   createModal() {
-    this.container = document.createElement("div");
-    this.container.style.position = "fixed";
-    this.container.style.top = "0";
-    this.container.style.left = "0";
-    this.container.style.width = "100vw";
-    this.container.style.height = "100vh";
-    this.container.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-    this.container.style.zIndex = "1";
-    this.container.hidden = true;
-    this.container.addEventListener("click", e => {
-      if (e.target === this.container) this.container.hidden = true;
-    });
-
-    GM_addStyle(
+    addStyle(
       "#milestone-list td,#milestone-list th,#ordinal-number{text-align:center}#milestone-modal,#milestone-modal .content{max-height:90vh}#milestone-modal{overflow:hidden;padding:10px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background-color:var(--body-background-color);border-radius:4px;width:min(90vw,490px);box-shadow:0 0 20px rgba(0,0,0,.3)}#milestone-modal .content{overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:flex-start;gap:10px}#milestone-modal button{width:5rem;padding:.15rem 1em}#ordinal-number{width:5rem;appearance:textfield}#ordinal-number::-webkit-inner-spin-button,#ordinal-number::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}@media (prefers-color-scheme:dark){#milestone-modal{border:1px solid #444}}"
     );
 
-    this.container.innerHTML =
-      '<div id="milestone-modal"><div class="content"><h1>Milestone Report</h1><div id="milestone-subtitle">Fetching data...</div><label><input type="number" id="ordinal-number" min="0" step="1" value="100">&nbsp;<span>th</span> post is:&nbsp;</label><button>Find</button>' +
-      (this.countsPage ? "" : '<label class="flex items-center gap-1"><input type="checkbox" id="toggle-report" class="toggle-switch"> Ignore deleted posts</label>') +
-      `<div id="milestone-tip" class="fineprint"></div><table id="milestone-list" class="striped"><thead><tr><th>Milestone</th><th>ID</th></tr></thead><tbody></tbody></table></div></div>`;
+    this.container = createElement("div", {
+      hidden: true,
+      style: {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: "1"
+      },
+      innerHTML:
+        '<div id="milestone-modal"><div class="content"><h1>Milestone Report</h1><div id="milestone-subtitle">Fetching data...</div><label><input type="number" id="ordinal-number" min="0" step="1" value="100">&nbsp;<span>th</span> post is:&nbsp;</label><button>Find</button>' +
+        (this.countsPage ? "" : '<label class="flex items-center gap-1"><input type="checkbox" id="toggle-report" class="toggle-switch"> Ignore deleted posts</label>') +
+        `<div id="milestone-tip" class="fineprint"></div><table id="milestone-list" class="striped"><thead><tr><th>Milestone</th><th>ID</th></tr></thead><tbody></tbody></table></div></div>`
+    });
+    this.container.addEventListener("click", e => {
+      if (e.target === this.container) this.container.hidden = true;
+    });
 
     document.body.appendChild(this.container);
     this.subTitle = this.container.querySelector("#milestone-subtitle");
@@ -192,8 +205,7 @@ const milestoneReport = {
     )} post milestone.`;
     this.list.querySelector("tbody").innerHTML = "";
     this.milestoneData.forEach(({ num, pid }) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${num}</td><td>${this.getPostIdHtml(pid)}</td>`;
+      const row = createElement("tr", { innerHTML: `<td>${num}</td><td>${this.getPostIdHtml(pid)}</td>` });
       this.list.querySelector("tbody").appendChild(row);
     });
   },
@@ -327,9 +339,7 @@ const milestoneReport = {
       this.deleteCount = Number(document.querySelector(".user-statistics a[href^='/posts?tags=status%3Adeleted+user%3A']").textContent);
       this.postCount = Number(changesReport.closest("td").querySelector("a[href^='/posts?tags=']").textContent);
       this.createModal();
-      const a = document.createElement("a");
-      a.href = "";
-      a.textContent = "milestone report";
+      const a = createElement("a", { href: "", textContent: "milestone report" });
       changesReport.after(" | ", a);
       a.onclick = e => {
         e.preventDefault();
@@ -350,9 +360,7 @@ const milestoneReport = {
       this.postCount = Number(lastNode.textContent.slice(1).trim());
       if (isNaN(this.postCount)) return;
       this.createModal();
-      const a = document.createElement("a");
-      a.href = "";
-      a.textContent = "milestone report";
+      const a = createElement("a", { href: "", textContent: "milestone report" });
       lastNode.after(" (", a, ")");
       a.onclick = e => {
         e.preventDefault();

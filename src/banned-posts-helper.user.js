@@ -28,6 +28,16 @@ const formatBytes = bytes => {
   return `${formattedValue} ${units[i]}`;
 };
 
+const createElement = (tag, props = {}) => {
+  const el = document.createElement(tag);
+  const { style, dataset, ..._props } = props;
+  Object.assign(el, _props);
+  Object.assign(el.dataset, dataset);
+  if (typeof style === "string") el.style.cssText = style;
+  else Object.assign(el.style, style);
+  return el;
+};
+
 const BOORU = {
   controller: document.body.dataset?.controller,
   action: document.body.dataset?.action,
@@ -144,12 +154,13 @@ const bannedPostsHelper = {
           const userPerPage = this.userPerPage;
           const postCount = postContainer.children.length;
           if (postCount !== userPerPage) {
-            let a = document.createElement("a");
-            a.id = "check_banned_posts";
-            a.href = "#";
-            a.title = "Shortcut is c";
-            a.setAttribute("data-shortcut", "c");
-            a.innerHTML = "<i>Banned</i>";
+            let a = createElement("a", {
+              id: "check_banned_posts",
+              href: "#",
+              title: "Shortcut is c",
+              innerHTML: "<i>Banned</i>",
+              dataset: { shortcut: "c" }
+            });
             a.addEventListener("click", event => {
               event.preventDefault();
               a.innerHTML = "<i>Checking...</i>";
@@ -418,26 +429,26 @@ const easierOneUp = {
     Danbooru.Notice.info("Successfully copied tags. Please check the commentary tags.");
   },
   addButton(post, div) {
-    const setParent = document.createElement("a");
-    setParent.classList.add("inactive-link");
-    setParent.href = "#";
-    setParent.innerText = "parent";
+    const setParent = createElement("a", {
+      classList: "inactive-link",
+      href: "#",
+      textContent: "parent"
+    });
     setParent.addEventListener("click", e => {
       e.preventDefault();
       this.copyTags(post, true);
     });
-    const setChild = document.createElement("a");
-    setChild.classList.add("inactive-link");
-    setChild.href = "#";
-    setChild.innerText = "child";
+    const setChild = createElement("a", {
+      classList: "inactive-link",
+      href: "#",
+      textContent: "child"
+    });
     setChild.addEventListener("click", e => {
       e.preventDefault();
       this.copyTags(post, false);
     });
-    div.children.length && div.appendChild(document.createTextNode(" | "));
-    div.appendChild(setParent);
-    div.appendChild(document.createTextNode(" | "));
-    div.appendChild(setChild);
+    div.children.length && div.append(" | ");
+    div.append(setParent, " | ", setChild);
   },
   async iqdbReq() {
     try {

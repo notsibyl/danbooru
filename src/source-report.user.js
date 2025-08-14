@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Source Report
 // @author      Sibyl
-// @version     1.24
+// @version     1.26
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -82,8 +82,22 @@ const sourceType = [
   {
     name: "🇰🇷SNS",
     search: "~source:*dcinside ~source:*://*.naver.com ~source:*://arca.live"
+  },
+  {
+    name: "Xiaohongshu",
+    search: "~source:*xhslink.com ~source:*www.xiaohongshu.com"
   }
 ];
+
+const createElement = (tag, props = {}) => {
+  const el = document.createElement(tag);
+  const { style, dataset, ..._props } = props;
+  Object.assign(el, _props);
+  Object.assign(el.dataset, dataset);
+  if (typeof style === "string") el.style.cssText = style;
+  else Object.assign(el.style, style);
+  return el;
+};
 
 const sourceReport = {
   widthQuery: window.matchMedia("(max-width: 660px)"),
@@ -171,15 +185,18 @@ const sourceReport = {
     });
   },
   createModal() {
-    this.container = document.createElement("div");
-    this.container.style.position = "fixed";
-    this.container.style.top = "0";
-    this.container.style.left = "0";
-    this.container.style.width = "100vw";
-    this.container.style.height = "100vh";
-    this.container.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-    this.container.style.zIndex = "9999";
-    this.container.hidden = true;
+    this.container = createElement("div", {
+      hidden: true,
+      style: {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        zIndex: "9999"
+      }
+    });
     this.container.addEventListener("click", e => {
       if (e.target === this.container) {
         this.container.hidden = true;
@@ -280,9 +297,7 @@ const sourceReport = {
       this.userName = nameEl.dataset.userName;
       const level = nameEl.dataset.userLevel;
       this.userLevel = level > 49 ? "admin" : level > 39 ? "moderator" : level > 31 ? "builder" : level > 30 ? "platinum" : level > 29 ? "gold" : "member";
-      const a = document.createElement("a");
-      a.href = "";
-      a.textContent = "source report";
+      const a = createElement("a", { href: "", textContent: "source report" });
       changesReport.after(" | ", a);
       a.onclick = e => {
         e.preventDefault();

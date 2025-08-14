@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Favorite Group Enhance
 // @author      Sibyl
-// @version     1.2
+// @version     1.3
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -9,19 +9,23 @@
 // @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/favgroup-count.user.js
 // @match       *://*.donmai.us/posts/*
 // @match       *://*.donmai.us/favorite_groups/*/edit
-// @grant       GM_addStyle
 // @run-at      document-end
 // ==/UserScript==
 
-const createElement = (tag, props = {}, dataset = {}) => {
+const createElement = (tag, props = {}) => {
   const el = document.createElement(tag);
-  Object.assign(el, props);
+  const { style, dataset, ..._props } = props;
+  Object.assign(el, _props);
   Object.assign(el.dataset, dataset);
+  if (typeof style === "string") el.style.cssText = style;
+  else Object.assign(el.style, style);
   return el;
 };
+
+const addStyle = css => document.head.appendChild(createElement("style", { textContent: css }));
+
 const decodeHtml = html => {
-  const txt = document.createElement("textarea");
-  txt.innerHTML = html;
+  const txt = createElement("textarea", { innerHTML: html });
   return txt.value;
 };
 
@@ -55,7 +59,7 @@ if (controller === "favorite-groups" && action === "edit") {
     const xEl = createElement("a", { classList: "favgroup-removal text-lg", title: "Remove from this group" });
     xEl.innerHTML = `<svg class="icon svg-icon close-icon" viewBox="0 0 320 512"><use fill="currentColor" href="${iconUri}#xmark"></use></svg>`;
     if (!bar) {
-      bar = createElement("li", { classList: "favgroup-navbar" }, { selected: false });
+      bar = createElement("li", { classList: "favgroup-navbar", dataset: { selected: false } });
       let nameEl = createElement("span", { classList: "favgroup-name" });
       let a = createElement("a", { href: pathname, textContent: "Favgroup: " + groupName });
       nameEl.append(a, xEl);
@@ -84,7 +88,7 @@ if (controller === "favorite-groups" && action === "edit") {
     });
   };
   if (addToAnchors.length) {
-    GM_addStyle(
+    addStyle(
       ".favgroup-name{white-space:normal!important}.favgroup-navbar:hover .favgroup-removal{opacity:1}.favgroup-removal{opacity:0;color:var(--button-danger-background-color);position:absolute;transform:translate(50%,-5%);cursor:pointer}.favgroup-removal:hover{color:var(--button-danger-hover-background-color)}"
     );
     const origOpen = window.XMLHttpRequest.prototype.open;

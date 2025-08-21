@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Banned Posts Helper
 // @author        Sibyl
-// @version       0.16
+// @version       0.17
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -246,6 +246,7 @@ const bannedPostsHelper = {
     const articles = container.querySelectorAll("article:not(.blacklist-initialized)");
     if (articles.length) {
       const blacklistEl = document.getElementById("blacklist-box");
+      if (!blacklistEl) return;
       const blacklistObj = blacklistEl.blacklist;
       articles.forEach(article => {
         const post = new Danbooru.Blacklist.Post(article, blacklistObj);

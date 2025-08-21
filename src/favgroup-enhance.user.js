@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Favorite Group Enhance
 // @author      Sibyl
-// @version     1.3
+// @version     1.4
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -50,8 +50,18 @@ if (controller === "favorite-groups" && action === "edit") {
   aA.addEventListener("click", () => sortIds());
   aD.addEventListener("click", () => sortIds(false));
 } else if (controller === "posts" && action === "show") {
-  const noticeSearchBar = document.querySelector(".post-notice-search"),
-    favgroupBars = noticeSearchBar?.querySelectorAll(".favgroup-navbar"),
+  let noticeSearchBar = document.querySelector(".post-notice-search");
+  if (!noticeSearchBar) {
+    noticeSearchBar = createElement("ul", {
+      classList: "notice post-notice post-notice-search",
+      hidden: true
+    });
+    const showAbove = document.body.dataset.currentUserNewPostNavigationLayout === "false",
+      content = document.getElementById("content");
+    if (showAbove) content.prepend(noticeSearchBar);
+    else content.insertBefore(noticeSearchBar, document.getElementById("post-sections"));
+  }
+  const favgroupBars = noticeSearchBar.querySelectorAll(".favgroup-navbar"),
     addToAnchors = document.querySelectorAll(".add-to-favgroup");
   const iconUri = document.querySelector("a#close-notice-link use").href.baseVal.split("#")[0];
   const postId = document.body.dataset.postId;
@@ -65,6 +75,7 @@ if (controller === "favorite-groups" && action === "edit") {
       nameEl.append(a, xEl);
       bar.appendChild(nameEl);
       noticeSearchBar.appendChild(bar);
+      if (noticeSearchBar.hidden) noticeSearchBar.hidden = false;
     } else {
       const nameEl = bar.querySelector(".favgroup-name");
       nameEl.appendChild(xEl);
@@ -83,6 +94,7 @@ if (controller === "favorite-groups" && action === "edit") {
             const text = matched[1] + `<a href="${url}">${matched[2]}</a>`;
             Danbooru.Notice.info(text);
             bar.remove();
+            if (noticeSearchBar.children.length === 0) noticeSearchBar.hidden = true;
           }
         });
     });

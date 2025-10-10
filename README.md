@@ -84,8 +84,8 @@ Makes the search bar stick to the top of the page.
 
 I only recently realized this is actually a small feature from [Danbooru EX](https://danbooru.donmai.us/forum_topics/13167). However, this version includes some improvements:
 
-* Better experience on mobile devices.
-* Fixed the autocomplete dropdown menu.
+- Better experience on mobile devices.
+- Fixed the autocomplete dropdown menu.
 
 [Install](/src/sticky-search-bar.user.js?raw=1)
 
@@ -104,10 +104,10 @@ Displays position and size information while the user adjusts the note box via d
 ### 🆎 DejaVu Sans
 
 > [!TIP]
-> This script is useful if your OS or browser lacks *Verdana* or forcibly aliases it to another font.\
-> *DejaVu Sans* is a similar-looking open-source alternative to *Verdana*.
+> This script is useful if your OS or browser lacks _Verdana_ or forcibly aliases it to another font.\
+> _DejaVu Sans_ is a similar-looking open-source alternative to _Verdana_.
 
-Replaces Danbooru’s default font *Verdana* with *DejaVu Sans*.\
+Replaces Danbooru’s default font _Verdana_ with _DejaVu Sans_.\
 While you could normally change fonts via custom CSS, this script uses the `GM_getResourceURL` API to load fonts more efficiently.
 
 #### [Install](/src/dejavu-sans.user.js?raw=1)
@@ -154,3 +154,22 @@ Some users don't like adding posts to their favorites may add them to their favo
 This simple userscript shows how many public favorite groups the current post has been added to.
 
 #### [Install](/src/favgroup-count.user.js?raw=1)
+
+### 📕 Fix Xiaohongshu / RedNote Post URL
+
+> [!IMPORTANT]
+> This script is designed for the PC web client only. It hasn’t been tested in mobile browsers running in desktop mode.
+
+This is a userscript that’s not directly related to Danbooru, but it’s meant to help some users check the sources of images originally posted on Xiaohongshu (RedNote).
+
+<details>
+  <summary>Details</summary>
+  Xiaohongshu is a very closed-off social platform with strict risk control policies regarding external link sharing. For source links without a valid <code>xsec_token</code> (or with an expired one), the site always requires users to scan a QR code with the mobile app.Sometimes, even visiting links containing an invalid <code>xsec_token</code> can trigger weird risk control behavior and get your account forcibly logged out.
+</details>
+
+This script lets you view Xiaohongshu post sources on the PC web client using only the post ID — no need to open the mobile app. You just need to stay logged in.
+
+> [!TIP]
+> Because of the site’s strict risk control policies, the script doesn’t automatically fix bad links. When you reach the QR scan page, just click the “view link” option and wait a few seconds.
+
+#### [Install](/src/fix-xhs-link.user.js?raw=1)

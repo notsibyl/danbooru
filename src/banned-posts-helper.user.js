@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Banned Posts Helper
 // @author        Sibyl
-// @version       0.17
+// @version       0.18
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -448,8 +448,20 @@ const easierOneUp = {
       e.preventDefault();
       this.copyTags(post, false);
     });
+    const setChildId = createElement("a", {
+      classList: "inactive-link",
+      href: "#",
+      textContent: "«id"
+    });
+    setChildId.addEventListener("click", e => {
+      e.preventDefault();
+      this.tagsField.value = `${this.tagsField.value.trim()} child:${post.dataset.id} `;
+      this.tagsField.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      document.querySelector(".tags-tab").click();
+      Danbooru.Notice.info("Child post ID copied.");
+    });
     div.children.length && div.append(" | ");
-    div.append(setParent, " | ", setChild);
+    div.append(setParent, " | ", setChild, " ", setChildId);
   },
   async iqdbReq() {
     try {

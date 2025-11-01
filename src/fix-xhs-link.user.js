@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          📕🔗🔧
 // @author        Sibyl
-// @version       1.5
+// @version       1.6
 // @icon          https://favicon.is/xiaohongshu.com
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -44,7 +44,7 @@
     },
     decode: function(input) {
       let output="",chr1,chr2,chr3,enc1,enc2,enc3,enc4,i=0;
-      input=input.replace(/[^A-Za-z0-9\+\/\=]/g,"");
+      input=input.replace(/[^A-Za-z0-9+/=]/g,"");
       while(i<input.length){
         enc1=this._keyStr.indexOf(input.charAt(i++));
         enc2=this._keyStr.indexOf(input.charAt(i++));
@@ -79,7 +79,7 @@
           resolve(cur);
         } else if (Date.now() - start > timeout) {
           clearInterval(timer);
-          reject(new Error(`等待 ${path} 超时`));
+          reject(new Error(`Timeout: ${path}`));
         }
       }, interval);
     });
@@ -89,7 +89,7 @@
   if (pathname === "/website-login/captcha" || pathname === "/404") {
     const sp = new URLSearchParams(location.search);
     let value = sp.get("redirectPath") || sp.get("source");
-    let pid = value.split("/explore/")[1].split("?")[0];
+    let pid = value.split(/\/(?:explore|discovery\/item)\//)[1].split("?")[0];
     const app = document.getElementById("app");
     const observer = new MutationObserver(ms =>
       ms.forEach(m =>
@@ -98,7 +98,7 @@
             observer.disconnect();
             const button = n.querySelector(".feedback-btn");
             const newButton = document.createElement(button.tagName);
-            newButton.textContent = "View Link";
+            newButton.textContent = "View Note";
             newButton.style.cursor = "pointer";
             newButton.addEventListener("click", () => {
               location.href = "/explore#" + pid;
@@ -146,7 +146,7 @@
       return "PC";
     })();
 
-  const platformCode = (() => {
+  const platformCode = (e => {
     let obj = {
       Android: 1,
       iOS: 2,

@@ -107,7 +107,9 @@ const milestoneReport = {
         width: "100vw",
         height: "100vh",
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        zIndex: "1"
+        // Note box zIndex: 100
+        // sticky-search-bar.user.js zIndex: 101
+        zIndex: "102"
       },
       innerHTML:
         '<div id="milestone-modal"><div class="content"><h1>Milestone Report</h1><div id="milestone-subtitle">Fetching data...</div><label><input type="number" id="ordinal-number" min="0" step="1" value="100">&nbsp;<span>th</span> post is:&nbsp;</label><button>Find</button>' +

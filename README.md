@@ -164,12 +164,12 @@ This is a userscript that’s not directly related to Danbooru, but it’s meant
 
 <details>
   <summary>Details</summary>
-  Xiaohongshu is a very closed-off social platform with strict risk control policies regarding external link sharing. For source links without a valid <code>xsec_token</code> (or with an expired one), the site always requires users to scan a QR code with the mobile app.Sometimes, even visiting links containing an invalid <code>xsec_token</code> can trigger weird risk control behavior and get your account forcibly logged out.
+  Xiaohongshu is a very closed-off social platform with strict risk control policies regarding external link sharing. For source links without a valid <code>xsec_token</code> (or with an expired one), the site always requires users to scan a QR code with the mobile app. Sometimes, even visiting links containing an invalid <code>xsec_token</code> can trigger weird risk control behavior and get your account forcibly logged out.
 </details>
 
 This script lets you view Xiaohongshu post sources on the PC web client using only the post ID — no need to open the mobile app. You just need to stay logged in.
 
 > [!TIP]
-> Because of the site’s strict risk control policies, the script doesn’t automatically fix bad links. When you reach the QR scan page, just click the “view link” option and wait a few seconds.
+> Because of the site’s strict risk control policies, the script doesn’t automatically fix bad links. When you reach the QR scan page, just click the "view note" and wait a few seconds.
 
 #### [Install](/src/fix-xhs-link.user.js?raw=1)

@@ -86,16 +86,11 @@ setTimeout(() => {
 const bgConfig = !useAcrylicBackground
   ? "}#search-header{background-color:var(--body-background-color)}"
   : `#top{background-color:transparent}#main-menu{${acrylicConfig.b};${acrylicConfig.rbg}}#main-menu .current{${acrylicConfig.rbgc}}#subnav-menu{${acrylicConfig.b};${acrylicConfig.sbg}}}#search-header{${acrylicConfig.b};${acrylicConfig.bg}}@media (prefers-color-scheme:dark){#search-header{${acrylicConfig.d.bg}}}@media screen and (max-width:660px) and (prefers-color-scheme:dark){#main-menu{${acrylicConfig.d.rbg}}#main-menu .current{${acrylicConfig.d.rbgc}}#subnav-menu{${acrylicConfig.d.sbg}}}`;
+// Note box zIndex: 100
 addStyle(
-  "body{height:unset;min-height:100%}#search-header{position:sticky;top:0;z-index:11;}#search-box-form{min-width:180px;width:50vw;margin:0 30px;padding:.5rem 0}#search-box-form input{height:26px}#app-name-header{display:none}#notice{top:calc(1rem + 26px)}#main-menu a{outline-offset:-1px}header#top,header#top>nav{margin-top:0!important}@media screen and (max-width:660px){header#top{z-index:11;position:sticky;top:calc(26px + 1.5rem)}header#top>div{display:block;margin:0}#app-name-header{display:block;position:fixed;top:.3rem;left:.5rem}header#top>div>a{position:fixed;top:.7rem;right:.5rem}#search-box-form{width:70vw;transition:width 0.2s ease;margin:0 auto;padding:.75rem 0}#search-box-form:focus-within{width:90vw}#search-box-form input#tags{min-width:180px}#search-header .ui-menu{width:70vw!important}#notice{top:calc(1.5rem + 26px)}" +
+  "body{height:unset;min-height:100%}#search-header{position:sticky;top:0;z-index:101;}#search-box-form{min-width:180px;width:50vw;margin:0 30px;padding:.5rem 0}#search-box-form input{height:26px}#app-name-header{display:none}#notice{top:calc(1rem + 26px)}#main-menu a{outline-offset:-1px}header#top,header#top>nav{margin-top:0!important}@media screen and (max-width:660px){header#top{z-index:11;position:sticky;top:calc(26px + 1.5rem)}header#top>div{display:block;margin:0}#app-name-header{display:block;position:fixed;top:.3rem;left:.5rem}header#top>div>a{position:fixed;top:.7rem;right:.5rem}#search-box-form{width:70vw;transition:width 0.2s ease;margin:0 auto;padding:.75rem 0}#search-box-form:focus-within{width:90vw}#search-box-form input#tags{min-width:180px}#search-header:focus-within{z-index:102}#search-header .ui-menu{width:70vw!important}#notice{top:calc(1.5rem + 26px)}" +
     bgConfig
 );
-searchForm.addEventListener("focusin", () => {
-  div.style.zIndex = "12";
-});
-searchForm.addEventListener("focusout", () => {
-  div.style.zIndex = "11";
-});
 document.getElementById("app-logo").addEventListener("click", e => {
   e.preventDefault();
   e.currentTarget.blur();

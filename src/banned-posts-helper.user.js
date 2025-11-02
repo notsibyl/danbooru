@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Banned Posts Helper
 // @author        Sibyl
-// @version       0.18
+// @version       0.19
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -37,6 +37,9 @@ const createElement = (tag, props = {}) => {
   else Object.assign(el.style, style);
   return el;
 };
+
+// Warning: Using GM_addStyle after document.write is unsafe.
+const addStyle = css => document.head.appendChild(createElement("style", { textContent: css }));
 
 const BOORU = {
   controller: document.body.dataset?.controller,
@@ -202,7 +205,7 @@ const bannedPostsHelper = {
               msg += ` ${bannedPostsCount} posts found in total.`;
             }
           }
-          unsafeWindow.Danbooru.Notice.info(msg);
+          Danbooru.Notice.info(msg);
           this.fixBlacklist(postContainer);
         });
       })
@@ -355,14 +358,96 @@ data-id="${id}" data-tags="${tag_string}" data-rating="${rating}" data-flags="${
         })
       ).text();
       // rails-ujs not broken; window not working somtimes
-      unsafeWindow._rails_loaded = false;
+      window._rails_loaded = false;
       document.open();
       document.write(html);
       document.close();
       await wait(1000);
+      this.initTagEditor();
     } catch (e) {
       console.error("Error:", e);
     }
+  },
+  initTagEditor() {
+    const li = document.createElement("li");
+    const editButton = createElement("a", {
+      id: "post-edit-link",
+      href: "#edit",
+      textContent: "Edit",
+      dataset: { shortcut: "e" }
+    });
+    li.append(editButton);
+    document.getElementById("post-sections").append(li);
+    document.getElementById("content").insertAdjacentHTML(
+      "beforeend",
+      `<section id="edit" style="display: none;"><form class="simple_form edit_post" id="form" autocomplete="off"><label for="post_tag_string">Tags</label><div class="input stacked-input text optional post_tag_string field_with_hint"><textarea class="text optional text-sm ui-autocomplete-input" id="post_tag_string" placeholder="Only new tags and some metadata tags (rating:, parent:, etc.) are accepted.
+Refer to help:cheatsheet Wiki for more metatag usage. " data-autocomplete="tag-edit" data-title="Shortcut is e" autocomplete="off"></textarea><span class="hint fineprint"><span class="desktop-only">Ctrl+Enter to submit</span></span></div><input type="submit" class="button-primary" name="submit_tags" value="Submit" data-disable-with="Submit"></form>`
+    );
+    addStyle("#post_tag_string::placeholder{padding:initial}");
+
+    let currentUpload;
+    let currentMediaAssetId = document.querySelector("#post-info-size>a").href.split("/")[4];
+    $("#post-sections li a,#side-edit-link").off("click.danbooru");
+    $("#post-sections li a,#side-edit-link").on("click.danbooru", async e => {
+      e.preventDefault();
+      if (e.target.hash === "#comments") {
+        $("#comments").show();
+        $("#edit").hide();
+        $("#recommended").hide();
+      } else if (e.target.hash === "#edit") {
+        if (!currentUpload) {
+          Danbooru.Notice.info("Checking upload media asset...");
+          const uploads = await $.get("/uploads.json", {
+            only: "upload_media_assets[id,media_asset_id]",
+            "search[upload_media_assets][post][id]": BOORU.postId
+          });
+          if (!uploads?.[0]) {
+            Danbooru.Notice.error("Upload media asset not found. Please upload source asset first.");
+            return;
+          } else {
+            Danbooru.Notice.notice.close();
+            currentUpload = uploads[0].upload_media_assets;
+          }
+        }
+        $("#edit").show();
+        $("#comments").hide();
+        $("#post_tag_string").focus().selectEnd();
+        $("#recommended").hide();
+      } else if (e.target.hash === "#recommended");
+      else {
+        $("#edit").hide();
+        $("#comments").hide();
+        $("#recommended").hide();
+      }
+      $("#post-sections li").removeClass("active");
+      $(e.target).parent("li").addClass("active");
+    });
+
+    document.getElementById("form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const uploadMediaAssetObj = currentUpload.filter(i => i.media_asset_id == currentMediaAssetId)[0];
+      let newTagString = e.target.elements["post_tag_string"].value.trim();
+      if (newTagString) {
+        await $.post("/posts.json", {
+          upload_media_asset_id: uploadMediaAssetObj.id,
+          post: {
+            tag_string: newTagString,
+            rating: document.querySelector("section.image-container").dataset.rating,
+            parent_id: document.body.dataset.postParentId
+          }
+        });
+        Danbooru.Notice.info("Post updated. Rredirecting to the version page in 3 seconds.");
+        wait(3000).then(() => {
+          location.href = "/post_versions?search[post_id]=" + BOORU.postId;
+        });
+      }
+      e.target.elements["submit_tags"].disabled = false;
+    });
+
+    $('input[type="text"], textarea').off("keydown.danbooru.submit_form");
+    Danbooru.Utility.keydown("ctrl+return", "submit_form", Danbooru.Shortcuts.submit_form, 'input[type="text"], textarea');
+    Danbooru.Shortcuts.initialize_data_shortcuts();
+    Danbooru.Autocomplete.initialize_tag_autocomplete();
   }
 };
 const easierOneUp = {

@@ -15,7 +15,7 @@
 
 ## Installation
 
-- Install [Violentmonkey](https://violentmonkey.github.io) _or_ [Tampermonkey](https://tampermonkey.net/) browser extension. If you're on a mobile platform, you can also consider using a browser that supports userscripts, such as [Via](https://viayoo.com).
+- Install [Violentmonkey](https://violentmonkey.github.io), [Tampermonkey](https://tampermonkey.net/) _or_ [ScriptCat](https://scriptcat.org/) browser extension. If you're on a mobile platform, you can also consider using a browser that supports userscripts, such as [Via](https://viayoo.com).
 - Click the userscript install link.
 - An installation prompt will appear. Accept the installation.
 - If you don't get a prompt, try the additional following steps.
@@ -154,6 +154,16 @@ Some users don't like adding posts to their favorites may add them to their favo
 This simple userscript shows how many public favorite groups the current post has been added to.
 
 #### [Install](/src/favgroup-count.user.js?raw=1)
+
+### 🔮 Estimate Last Activity
+
+This userscript estimates a user's last active time and is intended for users below level 40.
+
+> [!TIP]
+> Due to limited available data, the results may not be accurate.\
+> Some requests may time out; try refreshing if that happens.
+
+#### [Install](/src/estimate-last-activity.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

@@ -6,7 +6,7 @@
 <h4 align="center"><s>Make Danbooru Great Again</s></h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-15-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-18-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -164,6 +164,12 @@ This userscript estimates a user's last active time and is intended for users be
 > Some requests may time out; try refreshing if that happens.
 
 #### [Install](/src/estimate-last-activity.user.js?raw=1)
+
+### 📑 Tab-style Commentary
+
+A completely useless script: Tab-style artist's commentary.
+
+#### [Install](/src/tab-style-commentary.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

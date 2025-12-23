@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Sticky Search Bar
 // @author        Sibyl
-// @version       1.4
+// @version       1.6
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -80,7 +80,12 @@ document.getElementById("app-name").remove();
 document.getElementById("search-box")?.remove();
 document.querySelector('#post-sections a[href="#search-box"]')?.remove();
 setTimeout(() => {
-  Danbooru.Autocomplete.initialize_tag_autocomplete();
+  const ac = $("#tags").data("ui-autocomplete");
+  if (!ac) {
+    $('[data-autocomplete="tag-edit"]').attr("data-autocomplete", "skip-tag-edit");
+    Danbooru.Autocomplete.initialize_tag_autocomplete();
+    $('[data-autocomplete="skip-tag-edit"]').attr("data-autocomplete", "tag-edit");
+  }
   $(searchInput).autocomplete("option", "appendTo", "#search-header");
 }, 0);
 const bgConfig = !useAcrylicBackground

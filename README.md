@@ -6,7 +6,7 @@
 <h4 align="center"><s>Make Danbooru Great Again</s></h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-18-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-19-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -170,6 +170,12 @@ This userscript estimates a user's last active time and is intended for users be
 A completely useless script: Tab-style artist's commentary.
 
 #### [Install](/src/tab-style-commentary.user.js?raw=1)
+
+### 📜 Fetch Commentary
+
+If Danbooru extractor can't fetch artist's commentary from certain sites (such as *Bilibili* or *Weibo*), this script lets you retrieve data via APIs of other Danbooru instances (e.g. AIBooru or Cosbooru). You can also add more instances at the top of the script.
+
+#### [Install](/src/fetch-commentary.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

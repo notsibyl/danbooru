@@ -3,10 +3,8 @@
   Danbooru Userscript Collection
 </h1>
 
-<h4 align="center"><s>Make Danbooru Great Again</s></h4>
-
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-19-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-20-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -176,6 +174,12 @@ A completely useless script: Tab-style artist's commentary.
 If Danbooru extractor can't fetch artist's commentary from certain sites (such as *Bilibili* or *Weibo*), this script lets you retrieve data via APIs of other Danbooru instances (e.g. AIBooru or Cosbooru). You can also add more instances at the top of the script.
 
 #### [Install](/src/fetch-commentary.user.js?raw=1)
+
+### 🌈 Colored Username in Report Page
+
+If you often check users from the report page, this script might come in handy.
+
+#### [Install](/src/colored-username-in-report-page.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

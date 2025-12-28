@@ -42,9 +42,9 @@ const createElement = (tag, props = {}) => {
 const addStyle = css => document.head.appendChild(createElement("style", { textContent: css }));
 
 const BOORU = {
-  controller: document.body.dataset?.controller,
-  action: document.body.dataset?.action,
-  postId: document.body.dataset?.postId,
+  controller: document.body.dataset.controller,
+  action: document.body.dataset.action,
+  postId: document.body.dataset.postId,
   pathname: location.pathname,
   searchParams: new URLSearchParams(location.search),
   iconUri: document.querySelector("a#close-notice-link use").href.baseVal.split("#")[0],

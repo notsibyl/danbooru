@@ -4,7 +4,7 @@
 </h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-20-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-21-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -180,6 +180,13 @@ If Danbooru extractor can't fetch artist's commentary from certain sites (such a
 If you often check users from the report page, this script might come in handy.
 
 #### [Install](/src/colored-username-in-report-page.user.js?raw=1)
+
+### 🏸 More Search Options
+
+This script adds a regular expression search option to most search pages. It includes basic handling for `\s`, `\S`, `\d`, `\D`, `\w`, and `\W` to make them compatible with the Postgres ERE syntax used by Danbooru.
+You can also customize additional search options via variables at the top of the script, not limited to regex-related features.
+
+#### [Install](/src/more-search-options.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

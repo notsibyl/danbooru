@@ -397,8 +397,8 @@ const milestoneReport = {
   }
 };
 
-const controller = document.body.dataset?.controller,
-  action = document.body.dataset?.action;
+const controller = document.body.dataset.controller,
+  action = document.body.dataset.action;
 if (controller === "users" && action === "show") {
   milestoneReport.init();
 } else if (controller === "counts" && action === "posts") {

@@ -37,10 +37,10 @@ const formatTime = (fmt, ts = null) => {
   return fmt;
 };
 
-const controller = document.body.dataset?.controller,
-  action = document.body.dataset?.action,
+const controller = document.body.dataset.controller,
+  action = document.body.dataset.action,
   // "2021-06-09T23:49:56.434-06:00"
-  userCreatedAt = document.body.dataset?.userCreatedAt.slice(1, -1),
+  userCreatedAt = document.body.dataset.userCreatedAt.slice(1, -1),
   userTimezone = (timeStr => {
     let s = timeStr.slice(-6, -5);
     let h = timeStr.slice(-5, -3);

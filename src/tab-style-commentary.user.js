@@ -22,8 +22,8 @@ const createElement = (tag, props = {}) => {
   return el;
 };
 
-const controller = document.body.dataset?.controller,
-  action = document.body.dataset?.action;
+const controller = document.body.dataset.controller,
+  action = document.body.dataset.action;
 
 if (controller === "posts" && action === "show" && window.Alpine) {
   const commentary = document.getElementById("artist-commentary");

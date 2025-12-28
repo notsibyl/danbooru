@@ -29,8 +29,8 @@ const decodeHtml = html => {
   return txt.value;
 };
 
-const controller = document.body.dataset?.controller,
-  action = document.body.dataset?.action;
+const controller = document.body.dataset.controller,
+  action = document.body.dataset.action;
 if (controller === "favorite-groups" && action === "edit") {
   const sortIds = (ascending = true) => {
     let tArea = document.querySelector("#favorite_group_post_ids_string"),

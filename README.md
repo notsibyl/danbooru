@@ -4,7 +4,7 @@
 </h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-21-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-22-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -187,6 +187,14 @@ This script adds a regular expression search option to most search pages. It inc
 You can also customize additional search options via variables at the top of the script, not limited to regex-related features.
 
 #### [Install](/src/more-search-options.user.js?raw=1)
+
+### 🏷 Better Related Tags
+
+You can now view related tags for multiple tag combinations.
+
+![Better Related Tags](/screenshots/better-related-tags.png)
+
+#### [Install](/src/better-related-tags.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

@@ -4,7 +4,7 @@
 </h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-22-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-23-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -195,6 +195,14 @@ You can now view related tags for multiple tag combinations.
 ![Better Related Tags](/screenshots/better-related-tags.png)
 
 #### [Install](/src/better-related-tags.user.js?raw=1)
+
+### 🖇 Format Tags
+
+Adds a button near the tag edit box to categorize, sort, and validate tags.
+
+![Better Related Tags](/screenshots/format-tags.png)
+
+#### [Install](/src/format-tags.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

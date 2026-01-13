@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Auto Saver
 // @author      Sibyl
-// @version     0.3
+// @version     0.5
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -52,6 +52,7 @@
           document.querySelector(`#${elementName}`).value = value;
         }
       }
+      // For Chrome
       tagTextarea.dispatchEvent(new InputEvent("input"));
     }
 
@@ -68,10 +69,10 @@
         case "post_tag_string":
           value = value.trim() + " ";
         // case "post_source":
-        // case "post_artist_commentary_title":
-        // case "post_artist_commentary_desc":
-        case "post_translated_commentary_title":
-        case "post_translated_commentary_desc":
+        // case "post_artist_commentary_original_title":
+        // case "post_artist_commentary_original_description":
+        case "post_artist_commentary_translated_title":
+        case "post_artist_commentary_translated_description":
         case "post_parent_id":
           save({ [id]: value });
           break;

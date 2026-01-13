@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          More Tooltips
 // @author        Sibyl
-// @version       1.7
+// @version       1.8
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -54,12 +54,13 @@ const globalTooltipConfig = [
         const uid = doc.body.dataset.artistId;
         const name = doc.querySelector("a.tag-type-1")?.innerText?.replace(/ /g, "_");
         const count = doc.querySelector("div#a-show span.post-count")?.innerText;
-        let p = `<p><a target="_blank" href="/artists/${uid}/edit">Edit artist</a>&nbsp;|&nbsp;<a target="_blank" href="/post_versions?search%5Bchanged_tags%5D=${name}">Post Changes</a><span>`;
-        if (count && count !== "0") {
-          p += `<a target="_blank" class="inactive-link" href="/posts?tags=status%3Aany+${name}">${count}</a>,&nbsp;`;
-        }
-        p += `<a target="_blank" class="inactive-link" href="/artist_versions?search%5Bartist_id%5D=${uid}">0</a></span></p>`;
-        const ul = doc.querySelector("div#a-show > *:not(.artist-wiki) ul:not(#blacklist-list)");
+        let p = `<p><a target="_blank" href="/artists/${uid}/edit">Edit artist</a>`;
+        if (uid === "null") p = `<p><a target="_blank" href="/artists/new?artist%5Bname%5D=${name}">Create New</a>`;
+        p += `&nbsp;|&nbsp;<a target="_blank" href="/post_versions?search%5Bchanged_tags%5D=${name}">Post Changes</a><span>`;
+        if (count && count !== "0") p += `<a target="_blank" class="inactive-link" href="/posts?tags=status%3Aany+${name}">${count}</a>`;
+        if (uid !== "null") p += `,&nbsp;<a target="_blank" class="inactive-link" href="/artist_versions?search%5Bartist_id%5D=${uid}">0</a></span>`;
+        p += "</p>";
+        const ul = doc.querySelector("div#a-show > *:not(.artist-wiki):not(.recent-posts) ul:not(#blacklist-list)");
         if (ul) {
           ul.classList.add("thin-scrollbar", "text-xs");
           let lis = ul.children;
@@ -69,7 +70,10 @@ const globalTooltipConfig = [
         } else if (!name) {
           const p = doc.querySelector("div#page>p").textContent;
           return `<div class="artist-info"><p class="m-0 py-1 text-sm" style="text-align:center"><i>${p}</i></p></div>`;
-        } else return `<div class="artist-info"><p class="m-0 py-1 text-sm"><i>No URLs yet</i></p>${p}</div>`;
+        } else {
+          const text = uid === "null" ? "No artist entry yet" : "No URLs yet";
+          return `<div class="artist-info"><p class="m-0 py-1 text-sm"><i>${text}</i></p>${p}</div>`;
+        }
       }
     }
   },

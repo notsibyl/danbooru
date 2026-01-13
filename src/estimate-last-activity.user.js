@@ -1,15 +1,20 @@
 // ==UserScript==
-// @name        Estimate Last Activity
-// @author      Sibyl
-// @version     0.3
-// @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
-// @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
-// @homepageURL https://github.com/notsibyl/danbooru
-// @downloadURL https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/estimate-last-activity.user.js
-// @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/estimate-last-activity.user.js
-// @match       *://*.donmai.us/users/*
-// @run-at      document-end
+// @name         Estimate Last Activity
+// @author       Sibyl
+// @version      0.4
+// @icon         https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
+// @namespace    https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
+// @homepageURL  https://github.com/notsibyl/danbooru
+// @downloadURL  https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/estimate-last-activity.user.js
+// @updateURL    https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/estimate-last-activity.user.js
+// @match        *://*.donmai.us/users/*
+// @run-at       document-end
+// @description  Start taking over the world!
 // ==/UserScript==
+
+const controller = document.body.dataset.controller,
+  action = document.body.dataset.action;
+if (controller !== "users" || action !== "show") return;
 
 const createElement = (tag, props = {}) => {
   const el = document.createElement(tag);
@@ -37,10 +42,8 @@ const formatTime = (fmt, ts = null) => {
   return fmt;
 };
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action,
-  // "2021-06-09T23:49:56.434-06:00"
-  userCreatedAt = document.body.dataset.userCreatedAt.slice(1, -1),
+// "2021-06-09T23:49:56.434-06:00"
+const userCreatedAt = document.body.dataset.userCreatedAt?.slice(1, -1),
   userTimezone = (timeStr => {
     let s = timeStr.slice(-6, -5);
     let h = timeStr.slice(-5, -3);
@@ -157,4 +160,4 @@ const ELA = {
   }
 };
 
-if (controller === "users" && action === "show") ELA.init();
+ELA.init();

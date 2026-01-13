@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Colored Username in Report Page
 // @author        Sibyl
-// @version       1.5
+// @version       1.6
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -29,14 +29,18 @@ if (controller === "reports" && action === "show") {
     orders[userName] = i;
     names.push(userName);
   });
-  const chunkSize = 20;
+  const chunkSize = 100;
   const requests = [];
   for (let i = 0; i < names.length; i += chunkSize) {
     const chunk = names.slice(i, i + chunkSize);
-    const sp = new URLSearchParams({ only: "id,name,level_string,is_banned" });
-    // https://discord.com/channels/310432830138089472/310846683376517121/1453687185835429909
-    chunk.forEach(n => sp.append("search[name_array][]", n));
-    requests.push($.get(`/users.json?${sp.toString()}`));
+    requests.push(
+      $.post("/users.json", {
+        _method: "get",
+        limit: chunkSize,
+        only: "id,name,level_string,is_banned",
+        search: { name_array: chunk }
+      })
+    );
   }
   requests.forEach(request => {
     request.then(users => {

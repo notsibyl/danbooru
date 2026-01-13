@@ -56,11 +56,9 @@ Danbooru.RelatedTag.update_current_tag = function () {
   }
 };
 
+setTimeout(() => $(document).off("click.danbooru.relatedTags", "#post_tag_string"), 50);
+// Click events can be replaced with selectionchange
 $(document).on("selectionchange.danbooru.relatedTags", "#post_tag_string", Danbooru.RelatedTag.update_current_tag);
-setTimeout(() => {
-  $(document).off("click.danbooru.relatedTags", "#post_tag_string");
-  $(document).on("click.danbooru.relatedTags", "#post_tag_string", Danbooru.RelatedTag.update_current_tag);
-}, 50);
 
 const createElement = (tag, props = {}) => {
   const el = document.createElement(tag);

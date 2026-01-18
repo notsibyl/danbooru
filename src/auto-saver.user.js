@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Auto Saver
 // @author      Sibyl
-// @version     0.5
+// @version     0.6
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -27,7 +27,7 @@
       document.querySelector("#post-info-size > a[href^='/media_assets/']")?.href.split("/media_assets/")[1];
     await openDB();
     remove(assetId);
-  } else if (controller === "uploads" && action === "show") {
+  } else if ((controller === "uploads" || controller === "upload-media-assets") && action === "show") {
     const tagTextarea = document.querySelector("#post_tag_string");
 
     const fn = Danbooru.Autocomplete.insert_completion;

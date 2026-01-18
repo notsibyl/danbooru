@@ -198,7 +198,7 @@ You can now view related tags for multiple tag combinations.
 
 ### 🖇 Format Tags
 
-Adds a button near the tag edit box to categorize, sort, and validate tags.
+Adds a button near the tag edit box to categorize, sort, validate tags and fix tag alias.
 
 ![Better Related Tags](/screenshots/format-tags.png)
 

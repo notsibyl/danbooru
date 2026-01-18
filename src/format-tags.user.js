@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Format Tags
 // @author        Sibyl
-// @version       0.1
+// @version       0.4
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://dandonmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -107,7 +107,7 @@ const formatTags = (() => {
       const resp = await $.post("/tags.json", {
         _method: "get",
         limit: chunkSize,
-        only: "name,post_count,category,is_deprecated",
+        only: "name,post_count,category,is_deprecated,antecedent_alias[status,consequent_name]",
         search: { name_array: chunk }
       });
       const tagData = Object.fromEntries(resp.map(tag => [tag.name, tag]));
@@ -159,30 +159,47 @@ const formatTags = (() => {
       }
     }
 
+    const hasTag = tag => tagMap.get(tag) === tag,
+      ignoredCategory = {
+        0: false,
+        1: ["artist_request", "tagme_(artist)", "official_art"].some(hasTag),
+        3: ["copyright_request", "series_request"].some(hasTag),
+        4: ["copyright_request", "series_request", "character_request", "tagme_(character)", "original"].some(hasTag),
+        5: true
+      };
+
     let noticeMsg = hasRated ? "" : "🔞 Rating not selected.<br>";
-    let emptyTags = [];
+    let emptyTags = {};
 
     for (const [normalized, tag] of tagMap.entries()) {
       const tagInfo = TAG_CACHE[normalized];
       if (tagInfo.is_deprecated) classified.deprecated.push(tag);
-      else if (!tagInfo || (tagInfo.post_count === 0 && tagInfo.category === 0)) classified.unknown.push(tag);
-      else {
+      else if (!tagInfo || (tagInfo.post_count === 0 && tagInfo.antecedent_alias?.status !== "active")) {
+        if (tagInfo?.category) {
+          ignoredCategory[tagInfo.category] = true;
+          emptyTags[normalized] = `<i><a class="tag-type-${tagInfo.category}" href="/posts?tags=${normalized}" target="_blank">${normalized}</a></i>`;
+        }
+        classified.unknown.push(tag);
+      } else {
         const cat = tagInfo.category;
-        if (tagInfo.post_count === 0) emptyTags.push(`<i><a class="tag-type-${cat}" href="/posts?tags=${normalized}" target="_blank">${normalized}</a></i>`);
         if (!classified.tagsByCategory[cat]) {
           classified.tagsByCategory[cat] = [];
         }
-        classified.tagsByCategory[cat].push(tag);
+        if (tagInfo.post_count === 0) {
+          classified.tagsByCategory[cat].push(`${tag.startsWith("-") ? "-" : ""}${tagInfo.antecedent_alias.consequent_name}`);
+        } else classified.tagsByCategory[cat].push(tag);
       }
     }
-
-    if (emptyTags.length) noticeMsg += `📃 Empty tag(s): ${emptyTags.join(", ")}.<br>`;
 
     const sortTags = (a, b) => {
       const aHasMinus = a.startsWith("-");
       const bHasMinus = b.startsWith("-");
       if (aHasMinus !== bHasMinus) return aHasMinus ? 1 : -1;
-      return removeMinus(a).localeCompare(removeMinus(b));
+      const pa = removeMinus(a),
+        pb = removeMinus(b);
+      if (pa > pb) return 1;
+      if (pa < pb) return -1;
+      return 0;
     };
 
     classified.metaTags = [...new Set(classified.metaTags)];
@@ -196,26 +213,46 @@ const formatTags = (() => {
 
     console.log(classified);
     const categoryOrder = [1, 3, 4, 5, 0];
+
     let newText = "";
 
     for (const cat of categoryOrder) {
-      if (classified.tagsByCategory[cat]?.length) {
+      let canBeIgnored = ignoredCategory[cat];
+      const tags = classified.tagsByCategory[cat] || [];
+      const noMinusTags = tags.filter(tag => !tag.startsWith("-"));
+      if (tags.length) {
         newText += classified.tagsByCategory[cat].join(" ") + "\n";
-      } else if (cat % 5) {
-        const name = cat === 1 ? "artist" : cat === 3 ? "copyright" : "character";
-        noticeMsg += `⚠️ Missing <i style="color: var(--${name}-tag-color)">${name}</i> tag.<br>`;
+        if (noMinusTags.length === 0) canBeIgnored = ignoredCategory[cat] || false;
+        else continue;
+      }
+      const name = cat === 0 ? "general" : cat === 1 ? "artist" : cat === 3 ? "copyright" : "character";
+      const hasCheckTag = hasTag("check_" + name);
+      if (!canBeIgnored || (canBeIgnored && hasCheckTag)) {
+        const checkTag = "check_" + name;
+        if (hasTag(checkTag)) {
+          noticeMsg += `⚠️ <i><a class="tag-type-5" href="/posts?tags=${checkTag}" target="_blank">${checkTag}</a></i> found but missing <i style="color: var(--${name}-tag-color)">${name}</i> tag.<br>`;
+        } else noticeMsg += `⚠️ Missing <i style="color: var(--${name}-tag-color)">${name}</i> tag.<br>`;
       }
     }
+
     if (classified.metaTags.length) {
       newText += classified.metaTags.join(" ") + "\n";
     }
     if (classified.deprecated.length) {
       newText += classified.deprecated.join(" ") + "\n";
-      noticeMsg += "⛔ Deprecated tag(s): " + classified.deprecated.map(tag => `<i>${removeMinus(tag)}</i>`).join(", ") + ".<br>";
+      const tags = classified.deprecated.map(tag => {
+        const normalized = removeMinus(tag),
+          cat = TAG_CACHE[normalized].category;
+        return `<i><a class="tag-type-${cat}" href="/posts?tags=${normalized}" target="_blank">${normalized}</a></i>`;
+      });
+      noticeMsg += "⛔ Deprecated tag(s): " + tags.join(", ") + ".<br>";
     }
     if (classified.unknown.length) {
       newText += classified.unknown.join(" ") + "\n";
-      noticeMsg += "💢 Unknown tag(s): " + classified.unknown.map(tag => `<i>${removeMinus(tag)}</i>`).join(", ") + ".<br>";
+      const tags = classified.unknown.map(tag => {
+        return emptyTags[removeMinus(tag)] || `<i>${removeMinus(tag)}</i>`;
+      });
+      noticeMsg += "💢 Empty/unknown tag(s): " + tags.join(", ") + ".<br>";
     }
     textarea.value = newText.trim() + " ";
     noticeMsg && Danbooru.Notice.notice.show(noticeMsg.slice(0, -4), false);

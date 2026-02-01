@@ -45,8 +45,7 @@ const GM_fetch = (url, options = {}) => {
   });
 };
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action;
+const { action, controller } = document.body.dataset;
 
 const FC = {
   currentProviderOrigin: "",

@@ -4,7 +4,7 @@
 </h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/script%20count-23-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/script%20count-24-brightgreen?style=flat-square">
   &nbsp;
   <a href="https://danbooru.donmai.us/users/817128"><img src="https://img.shields.io/badge/author-Sibyl-a800aa?style=flat-square"></a>
   &nbsp;
@@ -203,6 +203,17 @@ Adds a button near the tag edit box to categorize, sort, validate tags and fix t
 ![Better Related Tags](/screenshots/format-tags.png)
 
 #### [Install](/src/format-tags.user.js?raw=1)
+
+### 🌓 Tag Diff View
+
+> [!TIP]
+> If you've installed the [More Tooltips](#speech_balloon-more-tooltips), this one can be skipped.
+
+A script that highlights tag changes on a post.
+
+![Tag Diff View](/screenshots/tag-diff-view.png)
+
+#### [Install](/src/tag-diff-view.user.js?raw=1)
 
 ### 📕 Fix Xiaohongshu / RedNote Post URL
 

@@ -22,8 +22,7 @@ const createElement = (tag, props = {}) => {
   return el;
 };
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action;
+const { action, controller } = document.body.dataset;
 
 const formatTags = (() => {
   // prettier-ignore

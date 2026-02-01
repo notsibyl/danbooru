@@ -12,8 +12,7 @@
 // @description  Start taking over the world!
 // ==/UserScript==
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action;
+const { action, controller } = document.body.dataset;
 if (controller !== "users" || action !== "show") return;
 
 const createElement = (tag, props = {}) => {

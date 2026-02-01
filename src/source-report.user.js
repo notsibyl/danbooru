@@ -307,8 +307,7 @@ const sourceReport = {
   }
 };
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action;
+const { action, controller } = document.body.dataset;
 if (controller === "users" && action === "show") {
   sourceReport.init();
 }

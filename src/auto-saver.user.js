@@ -18,8 +18,7 @@
   "use strict";
 
   const DB_STORE_NAME = "savedContentFromUploadPage";
-  const controller = document.body.dataset.controller;
-  const action = document.body.dataset.action;
+  const { action, controller } = document.body.dataset;
   let assetId, db;
   if (controller === "posts" && action === "show") {
     assetId =

@@ -10,8 +10,7 @@
 // @match         *://*.donmai.us/reports/*
 // ==/UserScript==
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action;
+const { action, controller } = document.body.dataset;
 
 if (controller === "reports" && action === "show") {
   const table = document.querySelector("#a-show table");

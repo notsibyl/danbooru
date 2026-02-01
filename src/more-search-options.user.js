@@ -111,8 +111,7 @@ const createElement = (tag, props = {}) => {
   return el;
 };
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action;
+const { action, controller } = document.body.dataset;
 
 function addSearchOptions() {
   const searchForm = document.querySelector("form.simple_form.search-form.inline-form");

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Format Tags
 // @author        Sibyl
-// @version       0.4
+// @version       0.5
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://dandonmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -158,16 +158,52 @@ const formatTags = (() => {
       }
     }
 
-    const hasTag = tag => tagMap.get(tag) === tag,
-      ignoredCategory = {
-        0: false,
-        1: ["artist_request", "tagme_(artist)", "official_art"].some(hasTag),
-        3: ["copyright_request", "series_request"].some(hasTag),
-        4: ["copyright_request", "series_request", "character_request", "tagme_(character)", "original"].some(hasTag),
-        5: true
-      };
-
     let noticeMsg = hasRated ? "" : "🔞 Rating not selected.<br>";
+
+    const hasTag = tag => tagMap.get(tag) === tag;
+
+    const charCounterTags = [
+      ["1girl", "2girls", "3girls", "4girls", "5girls", "6+girls"].filter(hasTag),
+      ["1boy", "2boys", "3boys", "4boys", "5boys", "6+boys"].filter(hasTag),
+      ["1other", "2others", "3others", "4others", "5others", "6+others"].filter(hasTag)
+    ];
+    const mutuallyExclusiveTags = [];
+    charCounterTags.forEach(arr => {
+      const tag = arr?.[0];
+      if (tag) {
+        let hasWrongMultiTag = false;
+        if (tag.startsWith("1")) {
+          const multiTag = `multiple_${arr[0].slice(1)}s`;
+          if (hasTag(multiTag)) {
+            hasWrongMultiTag = true;
+            mutuallyExclusiveTags.push(multiTag);
+          }
+        }
+        if (arr.length > 1 || hasWrongMultiTag) mutuallyExclusiveTags.push(...arr);
+      }
+    });
+    const allCounterTags = charCounterTags.flat();
+    const tagsLength = allCounterTags.length;
+    if (tagsLength) {
+      const noHumans = hasTag("no_humans");
+      if (noHumans) {
+        if (mutuallyExclusiveTags.length) mutuallyExclusiveTags.push("no_humans");
+        else mutuallyExclusiveTags.push(allCounterTags[0], "no_humans");
+      }
+    } else {
+      const specialTags = ["no_humans", "character_counter_request", "gender_request", "check_gender"].filter(hasTag);
+      if (!specialTags.length) noticeMsg += `👶 Missing character counter tags.<br>`;
+    }
+    if (mutuallyExclusiveTags.length > 1)
+      noticeMsg += `👶 Messy counter tags: ${mutuallyExclusiveTags.map(tag => `<i><a class="tag-type-0" href="/posts?tags=${tag}" target="_blank">${tag}</a></i>`).join(", ")}<br>`;
+
+    const ignoredCategory = {
+      0: false,
+      1: ["artist_request", "tagme_(artist)", "official_art"].some(hasTag),
+      3: ["copyright_request", "series_request"].some(hasTag),
+      4: ["copyright_request", "series_request", "character_request", "tagme_(character)", "original"].some(hasTag),
+      5: true
+    };
     let emptyTags = {};
 
     for (const [normalized, tag] of tagMap.entries()) {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Sticky Search Bar
 // @author        Sibyl
-// @version       1.6
+// @version       1.7
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -69,7 +69,7 @@ if (searchForm) {
   const iconUri = document.querySelector("a#close-notice-link use").href.baseVal.split("#")[0];
   searchForm.insertAdjacentHTML(
     "beforeend",
-    `<button id="search-box-submit" type="submit"><svg class="icon svg-icon search-icon" viewBox="0 0 512 512"><use fill="currentColor" href="${iconUri}#magnifying-glass"></use></svg></button>`
+    `<button id="search-box-submit" type="submit"><svg class="icon svg-icon search-icon" viewBox="0 0 512 512"><use fill="currentColor" href="${iconUri}#search"></use></svg></button>`
   );
 }
 let header = document.getElementById("top"),

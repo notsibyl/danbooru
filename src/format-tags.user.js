@@ -199,7 +199,7 @@ const formatTags = (() => {
 
     const ignoredCategory = {
       0: false,
-      1: ["artist_request", "tagme_(artist)", "official_art"].some(hasTag),
+      1: ["artist_request", "tagme_(artist)", "official_art", "official_wallpaper", "novel_illustration", "promotional_art"].some(hasTag),
       3: ["copyright_request", "series_request"].some(hasTag),
       4: ["copyright_request", "series_request", "character_request", "tagme_(character)", "original"].some(hasTag),
       5: true

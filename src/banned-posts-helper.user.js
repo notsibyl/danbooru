@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Banned Posts Helper
 // @author        Sibyl
-// @version       0.19
+// @version       0.22
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -325,12 +325,12 @@ const bannedPostsHelper = {
 <span class="post-votes inline-flex gap-1" data-id="${id}">
 <a class="post-upvote-link inactive-link" data-remote="true" rel="nofollow" data-method="post" href="/posts/${id}/votes?score=1">
 <svg class="icon svg-icon upvote-icon" viewBox="0 0 448 512">
-<use fill="currentColor" href="${BOORU.iconUri}#arrow-alt-up"></use></svg></a>
+<use fill="currentColor" href="${BOORU.iconUri}#upvote"></use></svg></a>
 <span class="post-score inline-block text-center whitespace-nowrap align-middle min-w-4">
 <a rel="nofollow" href="/post_votes?search%5Bpost_id%5D=${id}&amp;variant=compact">${score}</a></span>
 <a class="post-downvote-link inactive-link" data-remote="true" rel="nofollow" data-method="post" href="/posts/${id}/votes?score=-1">
 <svg class="icon svg-icon downvote-icon" viewBox="0 0 448 512">
-<use fill="currentColor" href="${BOORU.iconUri}#arrow-alt-down"></use>
+<use fill="currentColor" href="${BOORU.iconUri}#downvote"></use>
 </svg></a></span></div>`;
       }
     } else {
@@ -350,20 +350,27 @@ data-id="${id}" data-tags="${tag_string}" data-rating="${rating}" data-flags="${
 <img class="post-preview-image" src="${url}" width="${width}" height="${height}" alt="post #${id}" data-title="${tag_string} rating:${rating} score:${score}" title="" draggable="false" aria-expanded="false"></picture></a></div>${bottomPart}</article>`;
   },
   async showBannedPost() {
-    this.tipElement.innerText = "Fetching data....";
+    const tip = this.tipElement;
+    tip.innerText = "Fetching data....";
     try {
+      let url = new URL(location);
+      url.pathname += ".js";
+      url.search = "?variant=tooltip&preview=true";
       let html = await (
-        await fetch(location, {
+        await fetch(url, {
           headers: { "X-CSRF-Token": Danbooru.Utility.meta("csrf-token") }
         })
       ).text();
+      document.getElementById("page").insertAdjacentHTML("beforeend", html);
+      document.querySelector(".post-tooltip-source").nextElementSibling.remove();
+      tip.remove();
       // rails-ujs not broken; window not working somtimes
-      window._rails_loaded = false;
+      /* unsafeWindow._rails_loaded = false;
       document.open();
       document.write(html);
       document.close();
       await wait(1000);
-      this.initTagEditor();
+      this.initTagEditor(); */
     } catch (e) {
       console.error("Error:", e);
     }
@@ -487,7 +494,7 @@ const easierOneUp = {
     });
   },
   async process(node) {
-    if (node.className !== "iqdb-posts") return;
+    if (node.className !== "iqdb-posts" && node.className !== "similar-images-component") return;
     let container = node.querySelector("#iqdb-similar .posts-container");
     if (container) {
       let articles = container.children;

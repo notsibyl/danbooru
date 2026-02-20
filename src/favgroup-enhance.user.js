@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Favorite Group Enhance
 // @author      Sibyl
-// @version     1.4
+// @version     1.5
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -66,7 +66,7 @@ if (controller === "favorite-groups" && action === "edit") {
   const postId = document.body.dataset.postId;
   const handleFavgroupBar = (bar, groupName, pathname) => {
     const xEl = createElement("a", { classList: "favgroup-removal text-lg", title: "Remove from this group" });
-    xEl.innerHTML = `<svg class="icon svg-icon close-icon" viewBox="0 0 320 512"><use fill="currentColor" href="${iconUri}#xmark"></use></svg>`;
+    xEl.innerHTML = `<svg class="icon svg-icon close-icon" viewBox="0 0 320 512"><use fill="currentColor" href="${iconUri}#close"></use></svg>`;
     if (!bar) {
       bar = createElement("li", { classList: "favgroup-navbar", dataset: { selected: false } });
       let nameEl = createElement("span", { classList: "favgroup-name" });

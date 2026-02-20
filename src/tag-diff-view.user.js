@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Tag Diff View
 // @author      Sibyl
-// @version     0.3
+// @version     0.5
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -281,10 +281,10 @@ TDV.insertTagElements = function () {
 
 TDV.applyDiff = function () {
   for (const tag of this.TAG_ADDED) {
-    this.tagList.querySelectorAll(`li[data-tag-name="${tag}"]`).forEach(li => li.classList.add("tag-diff-view", "tag-diff-view-added"));
+    this.tagList.querySelectorAll(`li[data-tag-name="${CSS.escape(tag)}"]`).forEach(li => li.classList.add("tag-diff-view", "tag-diff-view-added"));
   }
   for (const tag of this.TAG_UNCHANGED) {
-    this.tagList.querySelectorAll(`li[data-tag-name="${tag}"]`).forEach(li => li.classList.add("tag-diff-view", "tag-diff-view-unchanged"));
+    this.tagList.querySelectorAll(`li[data-tag-name="${CSS.escape(tag)}"]`).forEach(li => li.classList.add("tag-diff-view", "tag-diff-view-unchanged"));
   }
 };
 

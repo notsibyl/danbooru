@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          More Tooltips
 // @author        Sibyl
-// @version       2.3
+// @version       2.4
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -70,7 +70,7 @@ const globalTooltipConfig = [
         let p = `<p><a target="_blank" href="/artists/${uid}/edit">Edit artist</a>`;
         if (uid === "null") p = `<p><a target="_blank" href="/artists/new?artist%5Bname%5D=${name}">Create New</a>`;
         p += `&nbsp;|&nbsp;<a target="_blank" href="/post_versions?search%5Bchanged_tags%5D=${name}">Post Changes</a><span>`;
-        if (count && count !== "0") p += `<a target="_blank" class="inactive-link" href="/posts?tags=status%3Aany+${name}">${count}</a>`;
+        if (count) p += `<a target="_blank" class="inactive-link" href="/posts?tags=status%3Aany+${name}">${count}</a>`;
         if (uid !== "null") p += `,&nbsp;<a target="_blank" class="inactive-link" href="/artist_versions?search%5Bartist_id%5D=${uid}">0</a></span>`;
         p += "</p>";
         const ul = doc.querySelector("div#a-show > *:not(.artist-wiki):not(.recent-posts) ul:not(#blacklist-list)");

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Estimate Last Activity
 // @author       Sibyl
-// @version      0.4
+// @version      0.5
 // @icon         https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace    https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL  https://github.com/notsibyl/danbooru
@@ -42,7 +42,7 @@ const formatTime = (fmt, ts = null) => {
 };
 
 // "2021-06-09T23:49:56.434-06:00"
-const userCreatedAt = document.body.dataset.userCreatedAt?.slice(1, -1),
+const userCreatedAt = document.body.dataset.userCreatedAt,
   userTimezone = (timeStr => {
     let s = timeStr.slice(-6, -5);
     let h = timeStr.slice(-5, -3);

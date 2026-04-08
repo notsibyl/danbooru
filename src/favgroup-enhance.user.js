@@ -1,15 +1,15 @@
 // ==UserScript==
-// @name        Favorite Group Enhance
-// @author      Sibyl
-// @version     1.5
-// @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
-// @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
-// @homepageURL https://github.com/notsibyl/danbooru
-// @downloadURL https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/favgroup-count.user.js
-// @updateURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/favgroup-count.user.js
-// @match       *://*.donmai.us/posts/*
-// @match       *://*.donmai.us/favorite_groups/*/edit
-// @run-at      document-end
+// @name         Favorite Group Enhance
+// @author       Sibyl
+// @version      1.6
+// @icon         https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
+// @namespace    https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
+// @homepageURL  https://github.com/notsibyl/danbooru
+// @downloadURL  https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/favgroup-count.user.js
+// @updateURL    https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/favgroup-count.user.js
+// @match        *://*.donmai.us/posts/*
+// @match        *://*.donmai.us/favorite_groups/*/edit
+// @run-at       document-end
 // ==/UserScript==
 
 const createElement = (tag, props = {}) => {
@@ -29,8 +29,8 @@ const decodeHtml = html => {
   return txt.value;
 };
 
-const { action, controller } = document.body.dataset;
-if (controller === "favorite-groups" && action === "edit") {
+const dataset = document.body.dataset;
+if (dataset.controller === "favorite-groups" && dataset.action === "edit") {
   const sortIds = (ascending = true) => {
     let tArea = document.querySelector("#favorite_group_post_ids_string"),
       ids = tArea.value.trim(),
@@ -48,76 +48,89 @@ if (controller === "favorite-groups" && action === "edit") {
   label.append(span);
   aA.addEventListener("click", () => sortIds());
   aD.addEventListener("click", () => sortIds(false));
-} else if (controller === "posts" && action === "show") {
-  let noticeSearchBar = document.querySelector(".post-notice-search");
-  if (!noticeSearchBar) {
-    noticeSearchBar = createElement("ul", {
-      classList: "notice post-notice post-notice-search",
-      hidden: true
-    });
-    const showAbove = document.body.dataset.currentUserNewPostNavigationLayout === "false",
-      content = document.getElementById("content");
-    if (showAbove) content.prepend(noticeSearchBar);
-    else content.insertBefore(noticeSearchBar, document.getElementById("post-sections"));
-  }
-  const favgroupBars = noticeSearchBar.querySelectorAll(".favgroup-navbar"),
-    addToAnchors = document.querySelectorAll(".add-to-favgroup");
-  const iconUri = document.querySelector("a#close-notice-link use").href.baseVal.split("#")[0];
-  const postId = document.body.dataset.postId;
-  const handleFavgroupBar = (bar, groupName, pathname) => {
-    const xEl = createElement("a", { classList: "favgroup-removal text-lg", title: "Remove from this group" });
-    xEl.innerHTML = `<svg class="icon svg-icon close-icon" viewBox="0 0 320 512"><use fill="currentColor" href="${iconUri}#close"></use></svg>`;
-    if (!bar) {
-      bar = createElement("li", { classList: "favgroup-navbar", dataset: { selected: false } });
-      let nameEl = createElement("span", { classList: "favgroup-name" });
-      let a = createElement("a", { href: pathname, textContent: "Favgroup: " + groupName });
-      nameEl.append(a, xEl);
-      bar.appendChild(nameEl);
-      noticeSearchBar.appendChild(bar);
-      if (noticeSearchBar.hidden) noticeSearchBar.hidden = false;
-    } else {
-      const nameEl = bar.querySelector(".favgroup-name");
-      nameEl.appendChild(xEl);
-      pathname = nameEl.children[0].pathname;
-    }
-    xEl.addEventListener("click", () => {
-      fetch(`${pathname}/remove_post.js?post_id=${postId}`, {
-        method: "PUT",
-        headers: { "X-CSRF-Token": Danbooru.Utility.meta("csrf-token") }
-      })
-        .then(resp => resp.text())
-        .then(text => {
-          const matched = text.match(/"(Removed post from favorite group )(.+?)"\);/);
-          if (matched) {
-            const url = encodeURI(`/posts?tags=favgroup:"${matched[2]}"`);
-            const text = matched[1] + `<a href="${url}">${matched[2]}</a>`;
-            Danbooru.Notice.info(text);
-            bar.remove();
-            if (noticeSearchBar.children.length === 0) noticeSearchBar.hidden = true;
-          }
+} else
+  (cb => {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") {
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  })(() => {
+    if (dataset.controller === "posts" && dataset.action === "show") {
+      let noticeSearchBar = document.querySelector(".post-notice-search");
+      if (!noticeSearchBar) {
+        noticeSearchBar = createElement("ul", {
+          classList: "notice post-notice post-notice-search",
+          hidden: true
         });
-    });
-  };
-  if (addToAnchors.length) {
-    addStyle(
-      ".favgroup-name{white-space:normal!important}.favgroup-navbar:hover .favgroup-removal{opacity:1}.favgroup-removal{opacity:0;color:var(--button-danger-background-color);position:absolute;transform:translate(50%,-5%);cursor:pointer}.favgroup-removal:hover{color:var(--button-danger-hover-background-color)}"
-    );
-    const origOpen = window.XMLHttpRequest.prototype.open;
-    window.XMLHttpRequest.prototype.open = function (method, url) {
-      if (method === "PUT") {
-        let groupId = url.match(/\/favorite_groups\/(\d+)\/add_post\.js/)?.[1];
-        if (groupId)
-          this.addEventListener("readystatechange", function () {
-            if (this.readyState !== XMLHttpRequest.DONE) return;
-            const groupName = this.response.match(/"Added post to favorite group (.+?)"/)?.[1];
-            if (groupName) {
-              const isShown = Array.from(favgroupBars).some(bar => bar.querySelector(".favgroup-name>a:first-of-type").pathname.split("/")[2] === groupId);
-              if (!isShown) handleFavgroupBar(null, decodeHtml(groupName), `/favorite_groups/${groupId}`);
-            }
-          });
+        const showAbove = document.body.dataset.currentUserNewPostNavigationLayout === "false",
+          content = document.getElementById("content");
+        if (showAbove) content.prepend(noticeSearchBar);
+        else content.insertBefore(noticeSearchBar, document.getElementById("post-sections"));
       }
-      return origOpen.apply(this, [].slice.call(arguments));
-    };
-  } else return;
-  if (favgroupBars.length) favgroupBars.forEach(bar => handleFavgroupBar(bar));
-}
+      const favgroupBars = noticeSearchBar.querySelectorAll(".favgroup-navbar"),
+        addToAnchors = document.querySelectorAll(".add-to-favgroup");
+      const iconUri = document.querySelector("a#close-notice-link use").href.baseVal.split("#")[0];
+      const postId = document.body.dataset.postId;
+      const handleFavgroupBar = (bar, groupName, pathname) => {
+        const xEl = createElement("a", { classList: "favgroup-removal text-lg", title: "Remove from this group" });
+        xEl.innerHTML = `<svg class="icon svg-icon close-icon" viewBox="0 0 320 512"><use fill="currentColor" href="${iconUri}#close"></use></svg>`;
+        if (!bar) {
+          bar = createElement("li", { classList: "favgroup-navbar", dataset: { selected: false } });
+          let nameEl = createElement("span", { classList: "favgroup-name" });
+          let a = createElement("a", { href: pathname, textContent: "Favgroup: " + groupName });
+          nameEl.append(a, xEl);
+          bar.appendChild(nameEl);
+          noticeSearchBar.appendChild(bar);
+          if (noticeSearchBar.hidden) noticeSearchBar.hidden = false;
+        } else {
+          const nameEl = bar.querySelector(".favgroup-name");
+          nameEl.appendChild(xEl);
+          pathname = nameEl.children[0].pathname;
+        }
+        xEl.addEventListener("click", () => {
+          fetch(`${pathname}/remove_post.js?post_id=${postId}`, {
+            method: "PUT",
+            headers: { "X-CSRF-Token": Danbooru.Utility.meta("csrf-token") }
+          })
+            .then(resp => resp.text())
+            .then(text => {
+              const matched = text.match(/"(Removed post from favorite group )(.+?)"\);/);
+              if (matched) {
+                const url = encodeURI(`/posts?tags=favgroup:"${matched[2]}"`);
+                const text = matched[1] + `<a href="${url}">${matched[2]}</a>`;
+                Danbooru.Notice.info(text);
+                bar.remove();
+                if (noticeSearchBar.children.length === 0) noticeSearchBar.hidden = true;
+              }
+            });
+        });
+      };
+      if (addToAnchors.length) {
+        addStyle(
+          ".favgroup-name{white-space:normal!important}.favgroup-navbar:hover .favgroup-removal{opacity:1}.favgroup-removal{opacity:0;color:var(--button-danger-background-color);position:absolute;transform:translate(50%,-5%);cursor:pointer}.favgroup-removal:hover{color:var(--button-danger-hover-background-color)}"
+        );
+        const origOpen = window.XMLHttpRequest.prototype.open;
+        window.XMLHttpRequest.prototype.open = function (method, url) {
+          if (method === "PUT") {
+            let groupId = url.match(/\/favorite_groups\/(\d+)\/add_post\.js/)?.[1];
+            if (groupId)
+              this.addEventListener("readystatechange", function () {
+                if (this.readyState !== XMLHttpRequest.DONE) return;
+                const groupName = this.response.match(/"Added post to favorite group (.+?)"/)?.[1];
+                if (groupName) {
+                  const favgroupBars = noticeSearchBar.querySelectorAll(".favgroup-navbar");
+                  const isShown = Array.from(favgroupBars).some(bar => bar.querySelector(".favgroup-name>a:first-of-type").pathname.split("/")[2] === groupId);
+                  if (!isShown) handleFavgroupBar(null, decodeHtml(groupName), `/favorite_groups/${groupId}`);
+                }
+              });
+          }
+          return origOpen.apply(this, [].slice.call(arguments));
+        };
+      } else return;
+      if (favgroupBars.length) favgroupBars.forEach(bar => handleFavgroupBar(bar));
+    }
+  });

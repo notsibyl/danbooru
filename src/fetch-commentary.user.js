@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Fetch Commentary
 // @author      Sibyl
-// @version     0.2
+// @version     0.3
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -44,8 +44,6 @@ const GM_fetch = (url, options = {}) => {
     });
   });
 };
-
-const { action, controller } = document.body.dataset;
 
 const FC = {
   currentProviderOrigin: "",
@@ -146,7 +144,18 @@ const FC = {
   }
 };
 
-if (action === "show") {
-  if (controller === "posts") FC.init();
-  else if (controller === "uploads" || controller === "upload-media-assets") FC.initSourceTab();
-}
+const dataset = document.body.dataset;
+if ((dataset.controller === "uploads" || dataset.controller === "upload-media-assets") && dataset.action === "show") FC.initSourceTab();
+else
+  (cb => {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") {
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  })(() => {
+    if (dataset.controller === "posts" && dataset.action === "show") FC.init();
+  });

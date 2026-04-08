@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Better Related Tags
 // @author        Sibyl
-// @version       1.3
+// @version       1.4
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -9,6 +9,7 @@
 // @updateURL     https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/better-related-tags.user.js
 // @match         *://*.donmai.us/*
 // @exclude-match *://cdn.donmai.us/*
+// @grant         none
 // @run-at        document-end
 // ==/UserScript==
 
@@ -58,28 +59,46 @@ Danbooru.RelatedTag.current_tag = function () {
   return string.slice(a, b).trim().replace(/\s+/g, " ");
 };
 
-  Danbooru.RelatedTag.update_current_tag = function () {
-    let current_tag = Danbooru.RelatedTag.current_tag().trim();
-    if (current_tag) {
-      $(".general-related-tags-column").removeClass("hidden");
-      $(".related-tags-current-tag").show().text(current_tag);
-      $(".related-tags-current-tag").attr("href", `/posts?tags=${encodeURIComponent(current_tag)}`);
-    }
-  };
+Danbooru.RelatedTag.update_current_tag = function () {
+  let current_tag = Danbooru.RelatedTag.current_tag().trim();
+  if (current_tag) {
+    $(".general-related-tags-column").removeClass("hidden");
+    $(".related-tags-current-tag").show().text(current_tag);
+    $(".related-tags-current-tag").attr("href", `/posts?tags=${encodeURIComponent(current_tag)}`);
+  }
+};
 
-setTimeout(() => $(document).off("click.danbooru.relatedTags", "#post_tag_string"), 50);
-// Click events can be replaced with selectionchange
-$(document).on("selectionchange.danbooru.relatedTags", "#post_tag_string", Danbooru.RelatedTag.update_current_tag);
+function main() {
+  setTimeout(() => $(document).off("click.danbooru.relatedTags", "#post_tag_string"), 50);
+  // Click events can be replaced with selectionchange
+  $(document).on("selectionchange.danbooru.relatedTags", "#post_tag_string", Danbooru.RelatedTag.update_current_tag);
 
-const tip = document.querySelector("div.post_tag_string span.hint>.desktop-only");
-if (tip) {
-  const a = createElement("a", { classList: "cursor-pointer desktop-only", textContent: "View current tag(s) in related tags page »", href: "#" });
-  tip.append(createElement("br"));
-  tip.after(a);
-  a.addEventListener("click", e => {
-    e.preventDefault();
-    const currentTag = Danbooru.RelatedTag.current_tag();
-    const url = `/related_tag?search%5Border%5D=Overlap&search%5Bquery%5D=${encodeURIComponent(current_tag)}`;
-    if (currentTag) window.open(url);
-  });
+  const tip = document.querySelector("div.post_tag_string span.hint>.desktop-only");
+  if (tip) {
+    const a = createElement("a", { classList: "cursor-pointer desktop-only", textContent: "View current tag(s) in related tags page »", href: "#" });
+    tip.append(createElement("br"));
+    tip.after(a);
+    a.addEventListener("click", e => {
+      e.preventDefault();
+      const currentTag = Danbooru.RelatedTag.current_tag();
+      const url = `/related_tag?search%5Border%5D=Overlap&search%5Bquery%5D=${encodeURIComponent(current_tag)}`;
+      if (currentTag) window.open(url);
+    });
+  }
 }
+
+const dataset = document.body.dataset;
+if (dataset.action !== "error" && dataset.controller !== "static") main();
+else
+  (cb => {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") {
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  })(() => {
+    if (dataset.controller === "posts" && dataset.action === "show") main();
+  });

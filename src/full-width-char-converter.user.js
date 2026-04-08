@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Full-width Character Converter
 // @author        Sibyl
-// @version       1.1
+// @version       1.2
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -13,71 +13,59 @@
 // @run-at        document-end
 // ==/UserScript==
 
-function hasFullWidthSearchChar(data) {
-  return (
-    data &&
-    (data.indexOf("\uFF1A") > -1 ||
-      data.indexOf("\uFF08") > -1 ||
-      data.indexOf("\uFF09") > -1 ||
-      data.indexOf("\u201C") > -1 ||
-      data.indexOf("\u201D") > -1 ||
-      data.indexOf("\u2018") > -1 ||
-      data.indexOf("\u2019") > -1 ||
-      data.indexOf("\u2014\u2014") > -1)
-  );
+const replacementMap = new Map([
+  ["——", "_"],
+  ["（", "("],
+  ["）", ")"],
+  ["：", ":"],
+  ["‘", "'"],
+  ["’", "'"],
+  ["“", '"'],
+  ["”", '"']
+]);
+const maxMatchLength = Math.max(...[...replacementMap.keys()].map(k => k.length));
+
+function main() {
+  const contentEditableElements = document.querySelectorAll("input[data-autocomplete='tag-query'], textarea[data-autocomplete='tag-edit']");
+  contentEditableElements.forEach(el => {
+    el.addEventListener("input", function (e) {
+      if (e.inputType && e.inputType.startsWith("delete")) return;
+      const target = e.target;
+      setTimeout(() => {
+        let value = target.value;
+        const cursorPos = target.selectionStart;
+
+        for (let len = Math.min(maxMatchLength, cursorPos); len >= 1; len--) {
+          const beforeStart = cursorPos - len;
+          const before = value.slice(beforeStart, cursorPos);
+          if (replacementMap.has(before)) {
+            const replacement = replacementMap.get(before);
+            const newValue = value.slice(0, beforeStart) + replacement + value.slice(cursorPos);
+            if (newValue !== value) {
+              target.value = newValue;
+              const newCursorPos = beforeStart + replacement.length;
+              target.setSelectionRange(newCursorPos, newCursorPos);
+            }
+            break;
+          }
+        }
+      }, 0);
+    });
+  });
 }
 
-function replaceFullWidthChar(data) {
-  return data
-    .replace(/\uFF1A/g, ":")
-    .replace(/\uFF08/g, "(")
-    .replace(/\uFF09/g, ")")
-    .replace(/\u201C|\u201D/g, '"')
-    .replace(/\u2018|\u2019/g, "'")
-    .replace(/\u2014\u2014/g, "_");
-}
-
-const contentEditableElements = document.querySelectorAll("input[data-autocomplete='tag-query'], textarea[data-autocomplete='tag-edit']");
-
-contentEditableElements.forEach(el => {
-  el.addEventListener("beforeinput", e => {
-    const { inputType, data, target } = e;
-    const { value, selectionStart, selectionEnd } = target;
-    let beginning = value.slice(0, selectionStart);
-    let ending = value.slice(selectionEnd);
-    console.log(e);
-
-    if (inputType === "insertFromPaste" && data && hasFullWidthSearchChar(data)) {
-      let newData = replaceFullWidthChar(data);
-      let cursor = beginning.length + newData.length;
-      inputElement.value = beginning + newData + ending;
-      inputElement.selectionStart = inputElement.selectionEnd = cursor;
-      return false;
-    }
+const dataset = document.body.dataset;
+if (dataset.action !== "error" && dataset.controller !== "static") main();
+else
+  (cb => {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") {
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  })(() => {
+    if (dataset.controller === "posts" && dataset.action === "show") main();
   });
-  el.addEventListener("input", e => {
-    // data here is null if inputType is insertFromPaste in Windows Chrome.
-    // So we need to replace it in beforeinput event.
-    const { inputType, data, target } = e;
-    const { value, selectionStart, selectionEnd } = target;
-    let beginning = value.slice(0, selectionStart);
-    let ending = value.slice(selectionEnd);
-
-    if (inputType?.startsWith("insert") && data && hasFullWidthSearchChar(data)) {
-      beginning = beginning.slice(0, -data.length);
-      let newData = replaceFullWidthChar(data);
-      let cursor = beginning.length + newData.length;
-      target.value = beginning + newData + ending;
-
-      // Android Webview and Chrome for Android has no insertCompositionText inputType.
-      if (inputType === "insertCompositionText") target.hasInsertCompositionText = true;
-      // An extra insertText event will be triggered in Windows Chrome.
-      if (inputType === "insertText" && target.hasInsertCompositionText) {
-        cursor = beginning.length;
-        target.value = beginning + ending;
-      }
-
-      target.selectionStart = target.selectionEnd = cursor;
-    }
-  });
-});

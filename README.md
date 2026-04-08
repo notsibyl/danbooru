@@ -57,6 +57,31 @@ This is a userscript written for members below level 37.
 - Shows missing banned posts when doing similar image search.
 - Easier 1up + Shows similar banned posts on upload page.
 
+#### Usage (for script developers)
+
+The script defines a global boolean variable named `__bph_loaded`. You can use this variable, or listen for the `BannedContentLoaded` event, to determine whether banned content has finished loading. This is particularly useful on post show pages.
+
+The following example demonstrates how to execute the `doSomethingHere` function on all pages except error pages:
+
+```javascript
+const dataset = document.body.dataset;
+if (dataset.action !== "error" && dataset.controller !== "static") doSomethingHere(); 
+else
+  (cb => {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") { 
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  })(() => {
+    if (dataset.controller === "posts" && dataset.action === "show") doSomethingHere();
+  });
+```
+
+
 #### [Install](/src/banned-posts-helper.user.js?raw=1)
 
 ### 👩‍🎨 Strikethrough for banned artists
@@ -215,9 +240,10 @@ A script that highlights tag changes on a post.
 
 #### [Install](/src/tag-diff-view.user.js?raw=1)
 
-### 📕 Fix Xiaohongshu / RedNote Post URL
+### 📕 ~~Fix Xiaohongshu / RedNote Post URL~~
 
 > [!IMPORTANT]
+> **Currently unavailable.**\
 > This script is designed for the PC web client only. It hasn’t been tested in mobile browsers running in desktop mode.
 
 This is a userscript that’s not directly related to Danbooru, but it’s meant to help some users check the sources of images originally posted on Xiaohongshu (RedNote).

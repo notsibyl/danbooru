@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Tag Diff View
 // @author      Sibyl
-// @version     0.5
+// @version     0.6
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -12,17 +12,34 @@
 // @run-at      document-end
 // ==/UserScript==
 
-const createElement = (tag, props = {}) => {
-  const el = document.createElement(tag);
-  const { style, dataset, ..._props } = props;
-  Object.assign(el, _props);
-  Object.assign(el.dataset, dataset);
-  if (typeof style === "string") el.style.cssText = style;
-  else Object.assign(el.style, style);
-  return el;
+const Utils = {
+  createElement: (tag, props = {}) => {
+    const el = document.createElement(tag);
+    const { style, dataset, ..._props } = props;
+    Object.assign(el, _props);
+    Object.assign(el.dataset, dataset);
+    if (typeof style === "string") el.style.cssText = style;
+    else Object.assign(el.style, style);
+    return el;
+  },
+  addStyle: css => document.head.appendChild(Utils.createElement("style", { textContent: css }))
 };
 
-const TDV = {
+const Booru = {
+  numerToHumanCount: n => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1, maximumSignificantDigits: 2 }).format(n).replace("K", "k"),
+  BPHLoaded(cb) {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") {
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  }
+};
+
+const TagListManager = {
   CAT: {
     0: "General",
     1: "Artist",
@@ -30,6 +47,163 @@ const TDV = {
     4: "Character",
     5: "Meta"
   },
+  async fetchTagData(tagSet, tagData = {}) {
+    const chunkSize = 1000;
+    const tagArray = [...tagSet];
+    let tagDataArray = [];
+    for (let i = 0; i < tagArray.length; i += chunkSize) {
+      const chunk = tagArray.slice(i, i + chunkSize);
+      const params = new URLSearchParams({
+        _method: "get",
+        limit: chunkSize,
+        only: "name,post_count,category,is_deprecated,antecedent_implications[status,consequent_name]"
+      });
+      chunk.forEach(tag => params.append("search[name_array][]", tag));
+      const resp = await (
+        await fetch("/tags.json", {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          method: "POST",
+          body: params.toString()
+        })
+      ).json();
+      tagDataArray = tagDataArray.concat(resp);
+    }
+    const nextTagSet = new Set();
+    const currentTagData = {};
+    for (const tag of tagDataArray) currentTagData[tag.name] = tag;
+    for (const tagName of tagArray) {
+      const tag = currentTagData[tagName] ?? {
+        name: tagName,
+        post_count: 0,
+        category: 0,
+        is_deprecated: false,
+        unknown: true
+      };
+      tagData[tagName] = tag;
+    }
+    for (let tag in tagData) {
+      const { antecedent_implications: ais, category } = tagData[tag];
+      if (category > 1 && ais) {
+        ais.forEach(ai => {
+          if (ai.status === "active" && !tagData[ai.consequent_name]) nextTagSet.add(ai.consequent_name);
+        });
+      }
+    }
+    if (nextTagSet.size) return this.fetchTagData(nextTagSet, tagData);
+    return tagData;
+  },
+  createTagElement({ name, category, is_deprecated, post_count }, level = 0) {
+    const li = Utils.createElement("li", {
+      classList: `flex tag-type-${category}${level ? " tag-nesting-level-" + level : ""}`,
+      dataset: { tagName: name, isDeprecated: is_deprecated }
+    });
+    const spanQ = Utils.createElement("span", { classList: "mr-2" });
+    const href = category === 1 ? `/artists/show_or_new?name=${name}` : `/wiki_pages/${/^\d+$/.test(name) ? "~" : ""}${name}`;
+    spanQ.append(Utils.createElement("a", { classList: "wiki-link", href, textContent: "?" }));
+    li.append(spanQ);
+    if (level)
+      li.append(
+        Utils.createElement("span", {
+          classList: "nested-tag-icon text-muted select-none mr-1",
+          style: `margin-left: ${0.75 * (level - 1)}rem`,
+          textContent: "↳"
+        })
+      );
+    const span = Utils.createElement("span");
+    const tag = Utils.createElement("a", { href: `/posts?tags=${name}`, textContent: name.replace(/_/g, " ") });
+    const count = Utils.createElement("span", { classList: "post-count", title: "${post_count}", textContent: Booru.numerToHumanCount(post_count) });
+    span.append(tag, " ", count);
+    li.append(span);
+    return li;
+  },
+  insertTagElements(tagList, tagsToInsertData, overwrite = true, requiredTags, newLineHandler) {
+    const categorizedTagMap = {};
+    const getNestLevel = li => Number(Array.prototype.find.call(li.classList, n => n.startsWith("tag-nesting-level-"))?.slice(-1));
+    tagList.querySelectorAll("li").forEach(li => {
+      const cat = Array.prototype.find.call(li.classList, n => n.startsWith("tag-type-")).slice(-1);
+      if (!categorizedTagMap[cat]) categorizedTagMap[cat] = {};
+      let level = getNestLevel(li),
+        compareRef = li.dataset.tagName;
+      if (level) {
+        let i = level,
+          prevLi = li;
+        while (i > 0) {
+          prevLi = prevLi.previousElementSibling;
+          const prevLevel = getNestLevel(prevLi) || 0;
+          if (prevLevel < i) {
+            compareRef = `${prevLi.dataset.tagName},${compareRef}`;
+            i--;
+          }
+        }
+      }
+      categorizedTagMap[cat][compareRef] = li;
+    });
+
+    if (!requiredTags) requiredTags = Object.keys(tagsToInsertData);
+    const getAllNestedTagLines = (tagName, implications, compareRef, level = 1) => {
+      let lines = [];
+      implications?.forEach(({ status, consequent_name }) => {
+        if (status === "active") {
+          compareRef = `${consequent_name},${compareRef}`;
+          const nextImplications = tagsToInsertData[consequent_name].antecedent_implications;
+          if (nextImplications.length) lines = lines.concat(getAllNestedTagLines(tagName, nextImplications, compareRef, level + 1));
+          else lines.push({ tagName, level, compareRef }, { tagName: consequent_name, level: 0, compareRef: consequent_name });
+        }
+      });
+      return lines;
+    };
+    const addToCategorizedTagMap = (li, compareRef, cat) => {
+      const oldLi = categorizedTagMap[cat][compareRef];
+      if (overwrite && oldLi) oldLi.remove();
+      if (!oldLi || overwrite) {
+        categorizedTagMap[cat][compareRef] = li;
+      }
+    };
+    for (const tag of requiredTags) {
+      const data = tagsToInsertData[tag];
+      const { antecedent_implications: ais, category } = data;
+      if (!categorizedTagMap[category]) {
+        categorizedTagMap[category] = {};
+      }
+      if (category > 1 && ais.length) {
+        const lines = getAllNestedTagLines(tag, ais, tag);
+        if (lines.length) {
+          lines.forEach(line => {
+            const currentTag = line.tagName;
+            if (requiredTags.indexOf(currentTag) > -1 && currentTag !== tag) return;
+            const li = this.createTagElement(tagsToInsertData[currentTag], line.level);
+            typeof newLineHandler === "function" && newLineHandler(li);
+            addToCategorizedTagMap(li, line.compareRef, category);
+          });
+          continue;
+        }
+      }
+      const li = this.createTagElement(data);
+      typeof newLineHandler === "function" && newLineHandler(li);
+      addToCategorizedTagMap(li, tag, category);
+    }
+    [1, 3, 4, 0, 5].forEach(cat => {
+      const className = `${this.CAT[cat].toLowerCase()}-tag-list`;
+      const tagMap = categorizedTagMap[cat];
+      if (!tagMap) return;
+      let h3 = tagList.querySelector(`h3.${className}`),
+        ul = tagList.querySelector(`ul.${className}`);
+      if (!ul) {
+        h3 = Utils.createElement("h3", { classList: className, textContent: this.CAT[cat] });
+        ul = Utils.createElement("ul", { classList: className });
+      }
+      Object.keys(tagMap)
+        .sort()
+        .forEach(ref => ul.append(tagMap[ref]));
+      tagList.append(h3, ul);
+    });
+    return tagList;
+  }
+};
+
+const TDV = {
   TAG_STATUS: {
     added: 1,
     unchanged: 0,
@@ -47,12 +221,6 @@ TDV.VERSION_COUNT = 0;
 TDV.initialize = async function () {
   this.postId = document.body?.dataset.postId || document.head.querySelector("meta[name='post-id']").getAttribute("content");
   this.tagList = document.querySelector("section#tag-list>div.categorized-tag-list");
-  // Add dataset for sort
-  for (const li of this.tagList.querySelectorAll("li[data-tag-name]")) {
-    const tag = li.dataset.tagName;
-    if (li.querySelector("span.nested-tag-icon")) li.dataset.orderName = `${li.previousElementSibling.dataset.orderName},${tag}`;
-    else li.dataset.orderName = tag;
-  }
   // Add version element
   await this.fetchVersionData();
   if (this.VERSION_COUNT > 1) {
@@ -73,9 +241,9 @@ TDV.initialize = async function () {
 
 TDV.showVersionCount = function () {
   const { version, updated_at } = this.VERSION_CACHE[0];
-  const li = createElement("li", { id: "post-info-version", title: `Latest update: ${updated_at}` });
-  const a1 = createElement("a", { href: `/post_versions?search%5Bpost_id%5D=${this.postId}`, target: "_blank", textContent: version });
-  const a2 = createElement("a", { href: "#", classList: "fineprint", textContent: "Show more" });
+  const li = Utils.createElement("li", { id: "post-info-version", title: `Latest update: ${updated_at}` });
+  const a1 = Utils.createElement("a", { href: `/post_versions?search%5Bpost_id%5D=${this.postId}`, target: "_blank", textContent: version });
+  const a2 = Utils.createElement("a", { href: "#", classList: "fineprint", textContent: "Show more" });
   li.append("Versions: ", a1, " ", a2);
   document.getElementById("post-info-status").after(li);
   a2.addEventListener("click", async e => {
@@ -107,10 +275,8 @@ TDV.showVersionCount = function () {
 };
 
 TDV.applyStyle = () => {
-  document.head.append(
-    createElement("style", {
-      textContent: `.categorized-tag-list>h3:has(+ ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden)))),.categorized-tag-list>ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden))){display:none}.tag-diff-view-added,.tag-diff-view-removed.tag-diff-view-reversed,.tag-diff-view-unchanged.tag-diff-view-added,table.stt-tdv tr.tdv-added.tdv-selected,table.stt-tdv tr.tdv-added:hover{background-color:var(--wiki-page-versions-diff-ins-background)}.tag-diff-view-added:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-ins-background) 80%,#fff)}.tag-diff-view-added.tag-diff-view-reversed,.tag-diff-view-removed,.tag-diff-view-unchanged.tag-diff-view-removed,table.stt-tdv tr.tdv-removed.tdv-selected,table.stt-tdv tr.tdv-removed:hover{background-color:var(--wiki-page-versions-diff-del-background)}.tag-diff-view-removed:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-del-background) 80%,#fff)}.tag-diff-view-first,.tag-diff-view-unchanged,table.stt-tdv tr.tdv-first.tdv-selected,table.stt-tdv tr.tdv-first:hover{background-color:var(--default-border-color)}.tag-diff-view-first:hover,.tag-diff-view-unchanged:hover{background-color:color-mix(in srgb,var(--default-border-color) 80%,#fff)}.tag-diff-view-dimmed{opacity:.3}.tag-diff-view.tag-diff-view-hidden{background-color:unset}.tag-diff-view-removed.tag-diff-view-hidden{display:none}.stt-bubble:has(.stt-tdv){z-index:1}table.stt-tdv thead tr{border-bottom:2px solid var(--table-header-border-color)}table.stt-tdv tbody tr{cursor:alias}table.stt-tdv :is(td,th){line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;padding-right:.5rem}.tdv-added span{color:var(--forum-topic-status-approved-color)}.tdv-removed span{color:var(--forum-topic-status-new-color)}table.stt-tdv td:first-child,table.stt-tdv th{text-align:center;user-select:none}table.stt-tdv td:nth-child(2){text-align:right}table.stt-tdv td:last-child{text-align:left}table.stt-tdv a.user{display:unset}`
-    })
+  Utils.addStyle(
+    `.categorized-tag-list>h3:has(+ ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden)))),.categorized-tag-list>ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden))){display:none}.tag-diff-view-added,.tag-diff-view-removed.tag-diff-view-reversed,.tag-diff-view-unchanged.tag-diff-view-added,table.stt-tdv tr.tdv-added.tdv-selected,table.stt-tdv tr.tdv-added:hover{background-color:var(--wiki-page-versions-diff-ins-background)}.tag-diff-view-added:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-ins-background) 80%,#fff)}.tag-diff-view-added.tag-diff-view-reversed,.tag-diff-view-removed,.tag-diff-view-unchanged.tag-diff-view-removed,table.stt-tdv tr.tdv-removed.tdv-selected,table.stt-tdv tr.tdv-removed:hover{background-color:var(--wiki-page-versions-diff-del-background)}.tag-diff-view-removed:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-del-background) 80%,#fff)}.tag-diff-view-first,.tag-diff-view-unchanged,table.stt-tdv tr.tdv-first.tdv-selected,table.stt-tdv tr.tdv-first:hover{background-color:var(--default-border-color)}.tag-diff-view-first:hover,.tag-diff-view-unchanged:hover{background-color:color-mix(in srgb,var(--default-border-color) 80%,#fff)}.tag-diff-view-dimmed{opacity:.3}.tag-diff-view.tag-diff-view-hidden{background-color:unset}.tag-diff-view-removed.tag-diff-view-hidden{display:none}.stt-bubble:has(.stt-tdv){z-index:1}table.stt-tdv thead tr{border-bottom:2px solid var(--table-header-border-color)}table.stt-tdv tbody tr{cursor:alias}table.stt-tdv :is(td,th){line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;padding-right:.5rem}.tdv-added span{color:var(--forum-topic-status-approved-color)}.tdv-removed span{color:var(--forum-topic-status-new-color)}table.stt-tdv td:first-child,table.stt-tdv th{text-align:center;user-select:none}table.stt-tdv td:nth-child(2){text-align:right}table.stt-tdv td:last-child{text-align:left}table.stt-tdv a.user{display:unset}`
   );
 };
 
@@ -124,7 +290,9 @@ TDV.loadMore = async function () {
       this.applyDiff();
     }
     await this.fillTagCache();
-    this.insertTagElements();
+    TagListManager.insertTagElements(this.tagList, this.TAG_CACHE, false, [...this.TAG_REMOVED], li =>
+      li.classList.add("tag-diff-view", "tag-diff-view-removed", "tag-diff-view-hidden")
+    );
     this.completed = true;
   } catch (e) {
     console.warn(e);
@@ -164,28 +332,7 @@ TDV.fillTagCache = async function () {
       tags.add(tag);
     }
   }
-  if (tags.size) {
-    const chunkSize = 1000;
-    const tagsArray = [...tags];
-    for (let i = 0; i < tagsArray.length; i += chunkSize) {
-      const chunk = tagsArray.slice(i, i + chunkSize);
-      const resp = await $.post("/tags.json", {
-        _method: "get",
-        limit: chunkSize,
-        only: "name,post_count,category,is_deprecated",
-        search: { name_array: chunk }
-      });
-      const tagData = Object.fromEntries(resp.map(tag => [tag.name, tag]));
-      for (const tagName of chunk) {
-        this.TAG_CACHE[tagName] = tagData[tagName] ?? {
-          name: tagName,
-          post_count: 0,
-          category: 0,
-          is_deprecated: false
-        };
-      }
-    }
-  }
+  if (tags.size) await TagListManager.fetchTagData(tags, this.TAG_CACHE);
 };
 
 TDV.classifyVersionData = function () {
@@ -199,7 +346,7 @@ TDV.classifyVersionData = function () {
     const _detail = { id, version, updater, updated_at };
     for (let tag of added_tags) {
       if (version === 1) {
-        if (this.TAG_HISTORY[tag] && this.TAG_HISTORY[tag]) {
+        if (this.TAG_HISTORY[tag]) {
           this.TAG_HISTORY[tag].details.push({ status: 0, ..._detail });
           this.TAG_HISTORY[tag].versions.set(version, 0);
           this.TAG_UNCHANGED.add(tag);
@@ -228,54 +375,6 @@ TDV.classifyVersionData = function () {
         this.TAG_REMOVED.add(tag);
       }
     }
-  }
-};
-
-TDV.renderNumber = n => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1, maximumSignificantDigits: 2 }).format(n).replace("K", "k");
-
-TDV.createTagElement = function (tag) {
-  const info = this.TAG_CACHE[tag];
-  const li = createElement("li", {
-    classList: `flex tag-type-${info.category} tag-diff-view tag-diff-view-removed tag-diff-view-hidden`,
-    dataset: { isDeprecated: info.is_deprecated, tagName: tag }
-  });
-  const span1 = createElement("span", { classList: "mr-2" });
-  const span2 = createElement("span");
-  const span3 = createElement("span", { classList: "post-count", title: info.post_count, textContent: this.renderNumber(info.post_count) });
-  const a1 = createElement("a", { class: "wiki-link", href: "/wiki_pages/" + tag, textContent: "?" });
-  const a2 = createElement("a", { classList: "search-tag", href: "/posts?tags=" + tag, textContent: tag.replaceAll("_", " ") });
-  span1.append(a1);
-  span2.append(a2, " ", span3);
-  li.append(span1, span2);
-  return li;
-};
-
-TDV.insertTagElements = function () {
-  const removedTagElements = {};
-  for (const tag of this.TAG_REMOVED) {
-    const cat = this.TAG_CACHE[tag].category;
-    if (removedTagElements[cat]) removedTagElements[cat].push(this.createTagElement(tag));
-    else removedTagElements[cat] = [this.createTagElement(tag)];
-  }
-  for (const cat in removedTagElements) {
-    const catName = this.CAT[cat];
-    const className = catName.toLowerCase() + "-tag-list";
-    let ul = this.tagList.querySelector("ul." + className);
-    if (!ul) {
-      const h3 = createElement("h3", { classList: className, textContent: catName });
-      ul = createElement("ul", { classList: className });
-      this.tagList.append(h3, ul);
-    }
-    ul.append(...removedTagElements[cat]);
-    [...ul.children]
-      .sort((a, b) => {
-        const _a = a.dataset.orderName || a.dataset.tagName;
-        const _b = b.dataset.orderName || b.dataset.tagName;
-        if (_a > _b) return 1;
-        if (_a < _b) return -1;
-        return 0;
-      })
-      .forEach(n => ul.appendChild(n));
   }
 };
 
@@ -312,7 +411,9 @@ TDV.loadTooltip = function () {
         "scrollbar-width": "thin"
       });
       const tag = instance.element.dataset.tagName;
-      const { details } = this.TAG_HISTORY[tag];
+      const { details } = this.TAG_HISTORY[tag] || {};
+      if (!details)
+        return '<p class="m-0 py-1 text-sm" style="text-align:center;width:180px"><i>No record: the implication may have been created after its subtag was removed.</i></p>';
       let html = '<table class="text-xs stt-tdv"><thead><tr><th></th><th>Ver</th><th>Updater</th></tr></thead><tbody>';
       for (let {
         id,
@@ -379,6 +480,7 @@ TDV.loadTooltip = function () {
     },
     onHide: (_, __, instance) => {
       const tbody = instance.tooltip().find(".stt-tdv>tbody")[0];
+      if (!tbody) return;
       const lastSelected = tbody.dataset.lastSelected;
       tbody.querySelector(`tr[data-version="${lastSelected}"]`)?.classList.remove("tdv-selected");
       this.tagList.querySelectorAll("li.tag-diff-view").forEach(li => {
@@ -389,19 +491,19 @@ TDV.loadTooltip = function () {
   });
 };
 
-const controller = document.body.dataset.controller,
-  action = document.body.dataset.action;
-if (controller == "posts" && action == "show") {
-  if (!$.fn.stt) simpleTooltip();
-  TDV.initialize();
-  window.Danbooru.TDV = TDV;
-}
+Booru.BPHLoaded(() => {
+  const controller = document.body.dataset.controller,
+    action = document.body.dataset.action;
+  if (controller == "posts" && action == "show") {
+    if (!$.fn.stt) simpleTooltip();
+    TDV.initialize();
+    window.Danbooru.TDV = TDV;
+  }
+});
 
 function simpleTooltip() {
-  document.head.append(
-    createElement("style", {
-      textContent: `.stt-bubble,.stt-bubble>.stt-arrow{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}.stt-bubble{--stt-bgcolor:var(--post-tooltip-background-color);--stt-title-bgcolor:var(--post-tooltip-header-background-color);--stt-arrow-color:var(--stt-bgcolor);background:var(--stt-bgcolor);border:1px solid var(--post-tooltip-border-color);position:absolute;text-align:center;border-radius:4px;z-index:9999;box-shadow:var(--shadow-lg)}.stt-bubble .stt-title{background:var(--stt-title-bgcolor);font-size:10px;border-radius:3px 3px 0 0}.stt-content{word-wrap:break-word;padding:.5em}.stt-bubble>.stt-arrow{position:absolute;border-width:0;pointer-events:none;left:50%;margin-left:0}.stt-bubble>.stt-arrow::after,.stt-bubble>.stt-arrow::before{content:'';position:absolute;left:0;border-style:solid;border-color:transparent}.stt-bubble.top>.stt-arrow{top:100%}.stt-bubble.top>.stt-arrow::before{top:0;border-width:7px 7px 0;border-top-color:var(--stt-arrow-color)}.stt-bubble.top>.stt-arrow::after{top:1px;border-width:7px 7px 0;border-top-color:var(--post-tooltip-border-color);z-index:-1}.stt-bubble.bottom>.stt-arrow{bottom:100%}.stt-bubble.bottom>.stt-arrow::before{bottom:0;border-width:0 7px 7px;border-bottom-color:var(--stt-arrow-color)}.stt-bubble.bottom>.stt-arrow::after{bottom:1px;border-width:0 7px 7px;border-bottom-color:var(--post-tooltip-border-color);z-index:-1}`
-    })
+  Utils.addStyle(
+    `.stt-bubble,.stt-bubble>.stt-arrow{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}.stt-bubble{--stt-bgcolor:var(--post-tooltip-background-color);--stt-title-bgcolor:var(--post-tooltip-header-background-color);--stt-arrow-color:var(--stt-bgcolor);background:var(--stt-bgcolor);border:1px solid var(--post-tooltip-border-color);position:absolute;text-align:center;border-radius:4px;z-index:9999;box-shadow:var(--shadow-lg)}.stt-bubble .stt-title{background:var(--stt-title-bgcolor);font-size:10px;border-radius:3px 3px 0 0}.stt-content{word-wrap:break-word;padding:.5em}.stt-bubble>.stt-arrow{position:absolute;border-width:0;pointer-events:none;left:50%;margin-left:0}.stt-bubble>.stt-arrow::after,.stt-bubble>.stt-arrow::before{content:'';position:absolute;left:0;border-style:solid;border-color:transparent}.stt-bubble.top>.stt-arrow{top:100%}.stt-bubble.top>.stt-arrow::before{top:0;border-width:7px 7px 0;border-top-color:var(--stt-arrow-color)}.stt-bubble.top>.stt-arrow::after{top:1px;border-width:7px 7px 0;border-top-color:var(--post-tooltip-border-color);z-index:-1}.stt-bubble.bottom>.stt-arrow{bottom:100%}.stt-bubble.bottom>.stt-arrow::before{bottom:0;border-width:0 7px 7px;border-bottom-color:var(--stt-arrow-color)}.stt-bubble.bottom>.stt-arrow::after{bottom:1px;border-width:0 7px 7px;border-bottom-color:var(--post-tooltip-border-color);z-index:-1}`
   );
   // Simple Tooltip v1.0.12 - Forked from [tipso](https://github.com/object505/tipso)
   // prettier-ignore

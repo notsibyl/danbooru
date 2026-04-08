@@ -397,11 +397,21 @@ const milestoneReport = {
   }
 };
 
-const { action, controller } = document.body.dataset;
-if (controller === "users" && action === "show") {
+const dataset = document.body.dataset;
+if (dataset.controller === "users" && dataset.action === "show") {
   milestoneReport.init();
-} else if (controller === "counts" && action === "posts") {
+} else if (dataset.controller === "counts" && dataset.action === "posts") {
   milestoneReport.initCounts();
-} else if (controller === "posts" && action === "show") {
-  milestoneReport.initNotification();
-}
+} else
+  (cb => {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") {
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  })(() => {
+    if (dataset.controller === "posts" && dataset.action === "show") milestoneReport.initNotification();
+  });

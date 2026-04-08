@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Format Tags
 // @author        Sibyl
-// @version       0.5
+// @version       0.6
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://dandonmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -9,23 +9,101 @@
 // @updateURL     https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/format-tags.user.js
 // @match         *://*.donmai.us/*
 // @exclude-match *://cdn.donmai.us/*
+// @grant         none
 // @run-at        document-end
 // ==/UserScript==
 
-const createElement = (tag, props = {}) => {
-  const el = document.createElement(tag);
-  const { style, dataset, ..._props } = props;
-  Object.assign(el, _props);
-  Object.assign(el.dataset, dataset);
-  if (typeof style === "string") el.style.cssText = style;
-  else Object.assign(el.style, style);
-  return el;
+const Utils = {
+  createElement(tag, props = {}) {
+    const el = document.createElement(tag);
+    const { style, dataset, ..._props } = props;
+    Object.assign(el, _props);
+    Object.assign(el.dataset, dataset);
+    if (typeof style === "string") el.style.cssText = style;
+    else Object.assign(el.style, style);
+    return el;
+  },
+  isPlural: count => (count === 1 ? "" : "s")
 };
 
-const { action, controller } = document.body.dataset;
+const Booru = {
+  tokenizer: (input, metatags, ignoreSpace = false) => {
+    const tokens = [];
+    const lowerInput = input.toLowerCase();
+    let i = 0;
+    while (i < input.length) {
+      const char = input[i];
+      if (/\s/.test(char)) {
+        const start = i;
+        while (i < input.length && /\s/.test(input[i])) i++;
+        if (!ignoreSpace) tokens.push({ type: "whitespace", value: input.slice(start, i) });
+        continue;
+      }
 
-const formatTags = (() => {
-  // prettier-ignore
+      let negated = false;
+      let or = false;
+      if (input[i] === "-" && i + 1 < input.length && !/\s/.test(input[i + 1])) {
+        negated = true;
+        i++;
+      } else if (input[i] === "~" && i + 1 < input.length && !/\s/.test(input[i + 1])) {
+        or = true;
+        i++;
+      }
+      const metaName = metatags.find(name => lowerInput.startsWith(`${name}:`, i));
+      if (metaName !== undefined) {
+        i += metaName.length + 1;
+        let value = "",
+          quoted = true;
+        if (input[i] === '"' || input[i] === "'") {
+          let hasEscape = false;
+          quoted = "";
+          value += input[i++];
+          while (i < input.length) {
+            quoted += input[i];
+            value += input[i++];
+            if (input[i - 1] === value[0]) {
+              if (input[i - 2] !== "\\") {
+                if (i < input.length && !/\s/.test(input[i])) quoted = false;
+                else quoted = quoted.slice(0, -1);
+                break;
+              } else {
+                hasEscape = true;
+                quoted = quoted.slice(0, -2) + value[0];
+              }
+            }
+          }
+          if (!hasEscape) {
+            value = value.slice(1, -1);
+            quoted = false;
+          }
+        } else quoted = false;
+        if (!quoted) {
+          while (i < input.length && !/\s/.test(input[i])) {
+            value += input[i++];
+          }
+        } else if (metaName !== "source") quoted = quoted.replace(/\s/g, "_");
+        if (metaName !== "source") value = value.replace(/\s/g, "_");
+        if (!["source", "newpool", "pool", "favgroup"].some(meta => metaName === meta)) value = value.toLowerCase();
+        tokens.push({ type: "metatag", name: metaName, value, negated, or, quoted });
+        continue;
+      }
+      let tag = "";
+      while (i < input.length && !/\s/.test(input[i])) {
+        tag += input[i++];
+      }
+      if (tag) {
+        tokens.push({ type: "tag", value: tag.toLowerCase(), negated, or });
+      }
+    }
+    return tokens;
+  }
+};
+
+const FormatTags = (() => {
+  /* prettier-ignore */
+  const EDIT_METATAGS = ["art","artist","ch","char","character","child","co","copy","copyright","disapproved","downvote","fav","favgroup","gen","general","meta","newpool","parent","pool","rating","source","status","upvote"];
+  const NEGATABLE_METATAGS = ["child", "favgroup", "parent", "pool", "status"];
+  /* prettier-ignore */
   const RECLASS_METATAGS = {
     gen: 0, general: 0,
     art: 1, artist: 1,
@@ -33,68 +111,35 @@ const formatTags = (() => {
     ch: 4, char: 4, character: 4,
     meta: 5
   };
-  // prettier-ignore
-  const METATAGS = [
-    "parent", "-parent",
-    "child", "-child",
-    "rating",
-    "source",
-    "newpool", "pool", "-pool", "favgroup", "-favgroup",
-    "fav", "-fav", 
-    "upvote", "downvote",
-    "disapproved",
-    "status", "-status",
-    ...Object.keys(RECLASS_METATAGS),
-  ];
+  const SHORT_NAME_MAPPING = {
+    gen: "general",
+    art: "artist",
+    copy: "copyright",
+    char: "character",
+    meta: "meta"
+  };
   const RATING = ["g", "s", "q", "e"];
   const TAG_CACHE = {};
-  // https://github.com/hdk5/danbooru.user.js/blob/d7c9925cf54ecafa208b0e79be10e071acb6c319/dist/input-tag-highlight.user.js#L159-L209
-  const tokenize = input => {
-    const tokens = [];
-    let i = 0;
-    while (i < input.length) {
-      const char = input[i];
-      if (/\s/.test(char)) {
-        tokens.push({ type: "whitespace", value: char });
-        i++;
-        continue;
-      }
-      const metaName = METATAGS.find(name => input.startsWith(`${name.toLowerCase()}:`, i));
-      if (metaName !== undefined) {
-        i += metaName.length + 1;
-        let value = "";
-        if (input[i] === '"' || input[i] === "'") {
-          value += input[i++];
-          while (i < input.length) {
-            value += input[i++];
-            if (input[i - 1] === value[0] && input[i - 2] !== "\\") {
-              break;
-            }
-          }
-        } else {
-          while (i < input.length && !/\s/.test(input[i])) {
-            value += input[i++];
-          }
-        }
-        if (!["source", "pool", "favgroup"].some(meta => metaName.endsWith(meta))) value = value.toLowerCase();
-        tokens.push({ type: "metatag", name: metaName, value });
-        continue;
-      }
-      let tag = "";
-      while (i < input.length && !/\s/.test(input[i])) {
-        tag += input[i++];
-      }
-      if (tag) tokens.push({ type: "tag", value: tag.toLowerCase() });
-    }
-    return tokens;
+  const validator = tagName => {
+    return ![
+      t => t.length > 170,
+      t => t === "",
+      t => /^_+/.test(t),
+      t => /\*|,/.test(t),
+      t => /^[-~_`%(){}\[\]\/]/.test(t),
+      t => /_$/.test(t),
+      t => /__/.test(t),
+      t => /[^\x20-\x7E]/.test(t),
+      t => ["new", "search", "and", "or", "not"].indexOf(t) > -1
+    ].some(test => test(tagName));
   };
   const removeMinus = tag => (tag.startsWith("-") ? tag.slice(1) : tag);
   const fillTagCache = async tokens => {
     const missingTags = new Set();
     for (const token of tokens) {
       if (token.type === "tag") {
-        const normalized = removeMinus(token.value);
-        if (!(normalized in TAG_CACHE)) missingTags.add(normalized);
+        const tagName = token.value;
+        if (!(tagName in TAG_CACHE)) missingTags.add(tagName);
       }
     }
     if (missingTags.size === 0) return 0;
@@ -109,9 +154,10 @@ const formatTags = (() => {
         only: "name,post_count,category,is_deprecated,antecedent_alias[status,consequent_name]",
         search: { name_array: chunk }
       });
-      const tagData = Object.fromEntries(resp.map(tag => [tag.name, tag]));
+      const currentTagData = {};
+      for (const tag of resp) currentTagData[tag.name] = tag;
       for (const tagName of chunk) {
-        const tag = tagData[tagName] ?? {
+        const tag = currentTagData[tagName] ?? {
           name: tagName,
           post_count: 0,
           category: 0,
@@ -124,39 +170,60 @@ const formatTags = (() => {
   };
   const sortAndClassifyTags = async textarea => {
     const text = textarea.value;
-    const tokens = tokenize(text);
-    await fillTagCache(tokens);
+    const tokens = Booru.tokenizer(text, EDIT_METATAGS, true);
 
     const classified = {
       metaTags: [],
       tagsByCategory: {}, // category -> tags[]
       deprecated: [],
-      unknown: []
+      unknown: [],
+      invalid: []
     };
-    const tagMap = new Map(); // key: NormalizedTag, value: tag: ActualTagString
+    const tagMap = new Map();
+    const tokensToQuery = [];
 
-    let hasRated = document.getElementById("quick-edit-div") || RATING.some(r => document.getElementById(`post_rating_${r}`)?.checked === true);
+    let hasRated = Boolean(document.getElementById("quick-edit-div")) || RATING.some(r => document.getElementById(`post_rating_${r}`)?.checked === true);
 
     for (const token of tokens) {
       if (token.type === "metatag") {
+        let n = token.negated ? "-" : token.or ? "~" : "";
         let name = token.name;
         let value = token.value;
-        if (name === "rating") {
+        let full = `${n}${name}:${value}`;
+        if (name in RECLASS_METATAGS) {
+          name = SHORT_NAME_MAPPING[name] || name;
+          if (!validator(token.quoted || value)) {
+            classified.invalid.push(full);
+            continue;
+          }
+        } else if (name === "rating") {
           if (RATING.some(r => value.startsWith(r))) {
             hasRated = true;
-            value = value.slice(0, 1);
+            full = `${n}${name}:${value.slice(0, 1)}`;
           } else continue;
         }
-        classified.metaTags.push(`${name}:${value}`);
+        if ((token.negated && !NEGATABLE_METATAGS.some(n => n === name)) || token.or) {
+          classified.invalid.push(full);
+          continue;
+        }
+        classified.metaTags.push(full);
       } else if (token.type === "tag") {
-        const normalized = removeMinus(token.value);
-        const hasMinus = token.value.startsWith("-");
-        if (tagMap.has(normalized)) {
-          const hasMinusBefore = tagMap.get(normalized).startsWith("-");
-          if (hasMinus && !hasMinusBefore) tagMap.set(normalized, token.value);
-        } else tagMap.set(normalized, token.value);
+        const n = token.negated ? "-" : "";
+        const value = token.value;
+        const full = `${n}${value}`;
+        if (token.or) classified.invalid.push(`~${value}`);
+        else if (!validator(value)) classified.invalid.push(full);
+        else {
+          tokensToQuery.push(token);
+          if (tagMap.has(value)) {
+            const negated = tagMap.get(value).startsWith("-") === "-";
+            if (n && !negated) tagMap.set(value, full);
+          } else tagMap.set(value, full);
+        }
       }
     }
+
+    await fillTagCache(tokensToQuery);
 
     let noticeMsg = hasRated ? "" : "🔞 Rating not selected.<br>";
 
@@ -192,10 +259,10 @@ const formatTags = (() => {
       }
     } else {
       const specialTags = ["no_humans", "character_counter_request", "gender_request", "check_gender"].filter(hasTag);
-      if (!specialTags.length) noticeMsg += `👶 Missing character counter tags.<br>`;
+      if (!specialTags.length) noticeMsg += `👽 Missing character counter tag.<br>`;
     }
     if (mutuallyExclusiveTags.length > 1)
-      noticeMsg += `👶 Messy counter tags: ${mutuallyExclusiveTags.map(tag => `<i><a class="tag-type-0" href="/posts?tags=${tag}" target="_blank">${tag}</a></i>`).join(", ")}<br>`;
+      noticeMsg += `😵 Messy counter tag${Utils.isPlural(mutuallyExclusiveTags.length)}: ${mutuallyExclusiveTags.map(tag => `<i><a class="tag-type-0" href="/posts?tags=${tag}" target="_blank">${tag}</a></i>`).join(", ")}<br>`;
 
     const ignoredCategory = {
       0: false,
@@ -206,13 +273,13 @@ const formatTags = (() => {
     };
     let emptyTags = {};
 
-    for (const [normalized, tag] of tagMap.entries()) {
-      const tagInfo = TAG_CACHE[normalized];
+    for (const [name, tag] of tagMap.entries()) {
+      const tagInfo = TAG_CACHE[name];
       if (tagInfo.is_deprecated) classified.deprecated.push(tag);
-      else if (!tagInfo || (tagInfo.post_count === 0 && tagInfo.antecedent_alias?.status !== "active")) {
+      else if (!tagInfo || (tagInfo.post_count === 0 && tagInfo.antecedent_implications?.status !== "active")) {
         if (tagInfo?.category) {
           ignoredCategory[tagInfo.category] = true;
-          emptyTags[normalized] = `<i><a class="tag-type-${tagInfo.category}" href="/posts?tags=${normalized}" target="_blank">${normalized}</a></i>`;
+          emptyTags[name] = `<i><a class="tag-type-${tagInfo.category}" href="/posts?tags=${name}" target="_blank">${name}</a></i>`;
         }
         classified.unknown.push(tag);
       } else {
@@ -221,7 +288,7 @@ const formatTags = (() => {
           classified.tagsByCategory[cat] = [];
         }
         if (tagInfo.post_count === 0) {
-          classified.tagsByCategory[cat].push(`${tag.startsWith("-") ? "-" : ""}${tagInfo.antecedent_alias.consequent_name}`);
+          classified.tagsByCategory[cat].push(`${tagInfo.negated ? "-" : ""}${tagInfo.antecedent_implications.consequent_name}`);
         } else classified.tagsByCategory[cat].push(tag);
       }
     }
@@ -239,6 +306,8 @@ const formatTags = (() => {
 
     classified.metaTags = [...new Set(classified.metaTags)];
     classified.metaTags.sort(sortTags);
+    classified.invalid = [...new Set(classified.invalid)];
+    classified.invalid.sort(sortTags);
 
     Object.keys(classified.tagsByCategory).forEach(category => {
       classified.tagsByCategory[category].sort(sortTags);
@@ -254,10 +323,10 @@ const formatTags = (() => {
     for (const cat of categoryOrder) {
       let canBeIgnored = ignoredCategory[cat];
       const tags = classified.tagsByCategory[cat] || [];
-      const noMinusTags = tags.filter(tag => !tag.startsWith("-"));
+      const includedTags = tags.filter(tag => !tag.startsWith("-"));
       if (tags.length) {
         newText += classified.tagsByCategory[cat].join(" ") + "\n";
-        if (noMinusTags.length === 0) canBeIgnored = ignoredCategory[cat] || false;
+        if (includedTags.length === 0) canBeIgnored = ignoredCategory[cat] || false;
         else continue;
       }
       const name = cat === 0 ? "general" : cat === 1 ? "artist" : cat === 3 ? "copyright" : "character";
@@ -280,28 +349,36 @@ const formatTags = (() => {
           cat = TAG_CACHE[normalized].category;
         return `<i><a class="tag-type-${cat}" href="/posts?tags=${normalized}" target="_blank">${normalized}</a></i>`;
       });
-      noticeMsg += "⛔ Deprecated tag(s): " + tags.join(", ") + ".<br>";
+      noticeMsg += `⛔ Deprecated tag${Utils.isPlural(tags.length)}: ${tags.join(", ")}.<br>`;
     }
     if (classified.unknown.length) {
       newText += classified.unknown.join(" ") + "\n";
       const tags = classified.unknown.map(tag => {
         return emptyTags[removeMinus(tag)] || `<i>${removeMinus(tag)}</i>`;
       });
-      noticeMsg += "💢 Empty/unknown tag(s): " + tags.join(", ") + ".<br>";
+      noticeMsg += `💢 Empty/unknown tag${Utils.isPlural(tags.length)}: ${tags.join(", ")}.<br>`;
+    }
+
+    if (classified.invalid.length) {
+      newText += classified.invalid.join(" ") + "\n";
+      const tags = classified.invalid.map(tag => {
+        return `<i>${tag}</i>`;
+      });
+      noticeMsg += `☠️ Invalid tag${Utils.isPlural(tags.length)}/syntax error${Utils.isPlural(tags.length)}: ${tags.join(", ")}.<br>`;
     }
     textarea.value = newText.trim() + " ";
     noticeMsg && Danbooru.Notice.notice.show(noticeMsg.slice(0, -4), false);
 
     return classified;
   };
-  const init = () => {
+  const initialize = () => {
     let anchor = document.querySelector("label[for=post_tag_string]");
-    let a = createElement("a", { classList: "text-sm", textContent: "Sort & validate", href: "#", style: "font-style:italic;margin-right:auto;margin-left:.5em;" });
+    let a = Utils.createElement("a", { classList: "text-sm", textContent: "Sort & validate", href: "#", style: "font-style:italic;margin-right:auto;margin-left:.5em;" });
     let flexDiv = anchor.closest("div.flex");
     if (flexDiv.isEqualNode(anchor.parentNode));
     else if (flexDiv.isEqualNode(anchor.parentNode.parentNode)) anchor = anchor.parentNode;
     else {
-      flexDiv = createElement("div", { classList: "flex justify-between" });
+      flexDiv = Utils.createElement("div", { classList: "flex justify-between" });
       anchor.parentNode.replaceChild(flexDiv, anchor);
       flexDiv.append(anchor);
     }
@@ -329,14 +406,25 @@ const formatTags = (() => {
     });
   };
   return {
-    RECLASS_METATAGS,
-    METATAGS,
     TAG_CACHE,
-    tokenize,
+    validator,
     sortAndClassifyTags,
-    init
+    initialize
   };
 })();
 
-if (((controller === "upload-media-assets" || controller === "uploads") && action === "show") || (controller === "posts" && (action === "index" || action === "show")))
-  formatTags.init();
+const dataset = document.body.dataset;
+
+if (((dataset.controller === "upload-media-assets" || dataset.controller === "uploads") && dataset.action === "show") || (dataset.controller === "posts" && dataset.action === "index"))
+  FormatTags.initialize();
+else
+  (cb => {
+    if (Danbooru.CurrentUser.data("level") > 35) cb();
+    else
+      setTimeout(() => {
+        if (typeof __bph_loaded === "boolean") {
+          if (__bph_loaded) cb();
+          else window.addEventListener("BannedContentLoaded", cb);
+        } else cb();
+      });
+  })(() => dataset.action === "show" && dataset.controller === "posts" && FormatTags.initialize());

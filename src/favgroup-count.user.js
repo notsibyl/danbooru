@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Show fav groups count
 // @author      Sibyl
-// @version     0.2
+// @version     0.3
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -13,14 +13,21 @@
 // @run-at      document-end
 // ==/UserScript==
 
-(() => {
-  const HIDE_IF_NO_FAVGROUPS_YET = false;
+const HIDE_IF_NO_FAVGROUPS_YET = false;
+
+(cb => {
+  if (Danbooru.CurrentUser.data("level") > 35) cb();
+  else
+    setTimeout(() => {
+      if (typeof __bph_loaded === "boolean") {
+        if (__bph_loaded) cb();
+        else window.addEventListener("BannedContentLoaded", cb);
+      } else cb();
+    });
+})(() => {
   const postId = document.body.dataset["postId"];
   if (!postId) return;
-  fetch(
-    "/favorite_groups.json?only=id&limit=100&search%5Bpost_ids_include_all%5D=" +
-      postId
-  )
+  fetch("/favorite_groups.json?only=id&limit=100&search%5Bpost_ids_include_all%5D=" + postId)
     .then(resp => resp.json())
     .then(json => {
       if (Array.isArray(json)) {
@@ -35,4 +42,4 @@
           );
       }
     });
-})();
+});

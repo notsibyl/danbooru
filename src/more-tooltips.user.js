@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          More Tooltips
 // @author        Sibyl
-// @version       2.6
+// @version       2.81
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -66,8 +66,9 @@ const TooltipHelper = {
     Utils.addStyle(
       `.stt-bubble,.stt-bubble>.stt-arrow{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}.stt-bubble{--stt-bgcolor:var(--post-tooltip-background-color);--stt-title-bgcolor:var(--post-tooltip-header-background-color);--stt-arrow-color:var(--stt-bgcolor);background:var(--stt-bgcolor);border:1px solid var(--post-tooltip-border-color);position:absolute;text-align:center;border-radius:4px;z-index:9999;box-shadow:var(--shadow-lg)}.stt-bubble .stt-title{background:var(--stt-title-bgcolor);font-size:10px;border-radius:3px 3px 0 0}.stt-content{word-wrap:break-word;padding:.5em}.stt-bubble>.stt-arrow{position:absolute;border-width:0;pointer-events:none;left:50%;margin-left:0}.stt-bubble>.stt-arrow::after,.stt-bubble>.stt-arrow::before{content:'';position:absolute;left:0;border-style:solid;border-color:transparent}.stt-bubble.top>.stt-arrow{top:100%}.stt-bubble.top>.stt-arrow::before{top:0;border-width:7px 7px 0;border-top-color:var(--stt-arrow-color)}.stt-bubble.top>.stt-arrow::after{top:1px;border-width:7px 7px 0;border-top-color:var(--post-tooltip-border-color);z-index:-1}.stt-bubble.bottom>.stt-arrow{bottom:100%}.stt-bubble.bottom>.stt-arrow::before{bottom:0;border-width:0 7px 7px;border-bottom-color:var(--stt-arrow-color)}.stt-bubble.bottom>.stt-arrow::after{bottom:1px;border-width:0 7px 7px;border-bottom-color:var(--post-tooltip-border-color);z-index:-1}` +
         `.stt-content>div.artist-info{display:flex;flex-direction:column}.stt-content>div.artist-info>ul{max-height:240px;padding-right:.2rem;margin-bottom:.3rem;text-align:left}.stt-content>div.artist-info li{line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stt-bubble div.artist-info>p:last-of-type{display:inline-block;text-align:left;margin:0}.stt-content>div.artist-info>p>span:last-of-type{float:right;margin-right:.3rem;color:var(--muted-text-color)}` +
-        `table.stt-favgroup thead tr{border-bottom:2px solid var(--table-header-border-color)}table.stt-favgroup tbody tr{border-bottom:1px solid var(--table-row-border-color)}table.stt-favgroup tbody tr:hover{background:var(--table-row-hover-background)}table.stt-favgroup tr:nth-child(2n){background:var(--table-even-row-background)}table.stt-favgroup td,table.stt-favgroup th{line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;padding-right:.5rem}table.stt-favgroup th{text-align:center}table.stt-favgroup td,table.stt-favgroup th:first-child{text-align:left}` +
-        `.categorized-tag-list>h3:has(+ ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden)))),.categorized-tag-list>ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden))){display:none}.tag-diff-view-added,.tag-diff-view-removed.tag-diff-view-reversed,.tag-diff-view-unchanged.tag-diff-view-added,table.stt-tdv tr.tdv-added.tdv-selected,table.stt-tdv tr.tdv-added:hover{background-color:var(--wiki-page-versions-diff-ins-background)}.tag-diff-view-added:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-ins-background) 80%,#fff)}.tag-diff-view-added.tag-diff-view-reversed,.tag-diff-view-removed,.tag-diff-view-unchanged.tag-diff-view-removed,table.stt-tdv tr.tdv-removed.tdv-selected,table.stt-tdv tr.tdv-removed:hover{background-color:var(--wiki-page-versions-diff-del-background)}.tag-diff-view-removed:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-del-background) 80%,#fff)}.tag-diff-view-first,.tag-diff-view-unchanged,table.stt-tdv tr.tdv-first.tdv-selected,table.stt-tdv tr.tdv-first:hover{background-color:var(--default-border-color)}.tag-diff-view-first:hover,.tag-diff-view-unchanged:hover{background-color:color-mix(in srgb,var(--default-border-color) 80%,#fff)}.tag-diff-view-dimmed{opacity:.3}.tag-diff-view.tag-diff-view-hidden{background-color:unset}.tag-diff-view-removed.tag-diff-view-hidden{display:none}.stt-bubble:has(.stt-tdv){z-index:1}table.stt-tdv thead tr{border-bottom:2px solid var(--table-header-border-color)}table.stt-tdv tbody tr{cursor:alias}table.stt-tdv :is(td,th){line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;padding-right:.5rem}.tdv-added span{color:var(--forum-topic-status-approved-color)}.tdv-removed span{color:var(--forum-topic-status-new-color)}table.stt-tdv td:first-child,table.stt-tdv th{text-align:center;user-select:none}table.stt-tdv td:nth-child(2){text-align:right}table.stt-tdv td:last-child{text-align:left}table.stt-tdv a.user{display:unset}`
+        ".stt-bubble:has(.stt-table){z-index:1}.stt-table{margin-right:.2rem}.stt-table thead tr{border-bottom:2px solid var(--table-header-border-color)}.stt-table tbody tr:not(:last-child){border-bottom:1px solid var(--table-row-border-color)}.stt-table tbody tr:hover{background:var(--table-row-hover-background)}.stt-table tr:nth-child(2n){background:var(--table-even-row-background)}.stt-table :is(td,th){line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;padding-right:.5rem}.stt-table th{text-align:center;user-select:none}" +
+        "table.stt-favgroup-table td,table.stt-favgroup-table th:first-child{text-align:left}" +
+        '.categorized-tag-list>h3:has(+ ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden)))),.categorized-tag-list>ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden))){display:none}.tag-diff-view-added,.tag-diff-view-removed.tag-diff-view-reversed,.tag-diff-view-unchanged.tag-diff-view-added,table.stt-tdv tr.tdv-added.tdv-selected,table.stt-tdv tr.tdv-added:hover{background-color:var(--wiki-page-versions-diff-ins-background)}.tag-diff-view-added:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-ins-background) 80%,#fff)}.tag-diff-view-added.tag-diff-view-reversed,.tag-diff-view-removed,.tag-diff-view-unchanged.tag-diff-view-removed,table.stt-tdv tr.tdv-removed.tdv-selected,table.stt-tdv tr.tdv-removed:hover{background-color:var(--wiki-page-versions-diff-del-background)}.tag-diff-view-removed:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-del-background) 80%,#fff)}.tag-diff-view-first,.tag-diff-view-unchanged,table.stt-tdv tr.tdv-first.tdv-selected{background-color:var(--default-border-color)}.tag-diff-view-first:hover,.tag-diff-view-unchanged:hover{background-color:color-mix(in srgb,var(--default-border-color) 80%,#fff)}.tag-diff-view-dimmed{opacity:.3}.tag-diff-view.tag-diff-view-hidden{background-color:unset}.tag-diff-view-removed.tag-diff-view-hidden{display:none}table.stt-tdv tbody tr:not(.tdv-elipsis){cursor:alias}table.stt-tdv a.user{display:unset}table.stt-tdv td:first-child{text-align:center;user-select:none}table.stt-tdv td:nth-child(2){text-align:right}table.stt-tdv td:last-child{text-align:left}table.stt-tdv td[data-rating]{padding-left:.5rem}.tdv-selected{background:var(--table-row-hover-background)}.tdv-elipsis td{text-align:center!important;color:var(--muted-text-color);font-style:italic}.tdv-added span{color:var(--forum-topic-status-approved-color)}.tdv-removed span{color:var(--forum-topic-status-new-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) :is([data-rating=""],[data-rating="?"]){color:var(--muted-text-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="g"]{color:var(--meta-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="s"]{color:var(--copyright-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="q"]{color:var(--character-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="e"]{color:var(--meta-tag-color)}'
     );
 
     // Simple Tooltip v1.0.12 - Forked from [tipso](https://github.com/object505/tipso)
@@ -219,7 +220,7 @@ const TooltipHelper = {
                 "overscroll-behavior-x": "contain",
                 "scrollbar-width": "thin"
               });
-              let html = '<table class="stt-favgroup text-xs"><thead><tr><th>Group</th><th>User</th></tr></thead><tbody>';
+              let html = '<table class="stt-table stt-favgroup-table text-xs"><thead><tr><th>Group</th><th>User</th></tr></thead><tbody>';
               for (let {
                 id,
                 name,
@@ -427,20 +428,27 @@ const TagDiffView = (() => {
   TDV.VERSION_CACHE = [];
   TDV.TAG_CACHE = {};
   TDV.TAG_HISTORY = {};
+  TDV.RATING_HISTORY = [];
   TDV.VERSION_COUNT = 0;
 
   TDV.initialize = async function () {
     this.postId = document.body?.dataset.postId || document.head.querySelector("meta[name='post-id']").getAttribute("content");
     this.tagList = document.querySelector("section#tag-list>div.categorized-tag-list");
+    this.rating = document.getElementById("post-info-rating");
     // Add version element
     await this.fetchVersionData();
     if (this.VERSION_COUNT > 1) {
       this.classifyVersionData();
       this.applyDiff();
       this.showDiff();
+      this.showRatingMark();
       this.showVersionCount();
       this.loadTooltip();
       this.mode = 1;
+      this.rating.addEventListener("click", async e => {
+        const el = e.target;
+        el.classList.contains("tag-diff-view") && (await $(el).stt("show"));
+      });
       this.tagList.addEventListener("click", async e => {
         let el = e.target;
         if (el.tagName !== "LI" && el.parentElement.tagName === "LI") el = el.parentElement;
@@ -449,11 +457,23 @@ const TagDiffView = (() => {
     }
   };
 
+  TDV.showRatingMark = function () {
+    if (this.RATING_HISTORY.length > 1 && !this.ratingMark) {
+      this.rating.classList.add("tag-diff-view");
+      this.ratingMark = Utils.createElement("span", {
+        style: { pointerEvents: "none" },
+        dataset: { rating: "" },
+        textContent: "»"
+      });
+      this.rating.append(" ", this.ratingMark);
+    }
+  };
+
   TDV.showVersionCount = function () {
     const { version, updated_at } = this.VERSION_CACHE[0];
     const li = Utils.createElement("li", { id: "post-info-version", title: `Latest update: ${updated_at}` });
     const a1 = Utils.createElement("a", { href: `/post_versions?search%5Bpost_id%5D=${this.postId}`, target: "_blank", textContent: version });
-    const a2 = Utils.createElement("a", { href: "#", classList: "fineprint", textContent: "Show more" });
+    const a2 = Utils.createElement("a", { href: "#", classList: "fineprint tdv-count", textContent: "Show more" });
     li.append("Versions: ", a1, " ", a2);
     document.getElementById("post-info-status").after(li);
     a2.addEventListener("click", async e => {
@@ -489,9 +509,10 @@ const TagDiffView = (() => {
     try {
       if (this.VERSION_COUNT > 21) {
         this.VERSION_CACHE.splice(-1, 1);
-        await this.fetchVersionData(this.VERSION_CACHE[19].id);
+        await this.fetchVersionData(null, this.VERSION_CACHE[19].id);
         this.classifyVersionData();
         this.applyDiff();
+        this.showRatingMark();
       }
       await this.fillTagCache();
       TagListManager.insertTagElements(this.tagList, this.TAG_CACHE, false, [...this.TAG_REMOVED], li =>
@@ -503,27 +524,41 @@ const TagDiffView = (() => {
     }
   };
 
-  TDV.fetchVersionData = async function (lastVersionId) {
-    let url = "/post_versions.json?type=current&only=id,added_tags,removed_tags,version,updated_at,updater[id,name,level_string,is_banned]&search[post_id]=" + this.postId;
-    if (lastVersionId === -1) {
-      url += "&search[version]=1";
-    } else if (lastVersionId) {
+  TDV.fetchVersionData = async function (lastVersion, lastVersionId) {
+    // ⚠ For older posts, the version number may not increase monotonically with the version ID.
+    let url =
+      "/post_versions.json?type=current&only=id,added_tags,removed_tags,version,updated_at,rating,rating_changed,updater[id,name,level_string,is_banned]&search[post_id]=" +
+      TDV.postId;
+    if (lastVersionId) {
       url += "&limit=200&page=b" + lastVersionId;
+    } else if (lastVersion) {
+      url += "&search[version]=" + lastVersion;
     }
     return $.get(url).then(json => {
       this.VERSION_CACHE.push(...json);
-      if (lastVersionId === -1) {
-        // ⚠ The version order of earlier posts is out of sequence.
-        this.VERSION_CACHE.sort((a, b) => b.version - a.version);
-        return true;
-      } else if (lastVersionId) {
+      if (lastVersionId) {
         if (this.VERSION_CACHE.length === this.VERSION_COUNT) {
-          this.VERSION_CACHE.sort((a, b) => b.version - a.version);
           return true;
-        } else return this.fetchVersionData(json[199].id);
-      } else {
+        } else return this.fetchVersionData(null, json[199].id);
+      } else if (lastVersion) return true;
+      else {
+        // Assumption: the first element of the API response contains the latest version.
         this.VERSION_COUNT = json[0].version;
-        if (this.VERSION_COUNT > 20) return this.fetchVersionData(-1);
+        if (this.VERSION_COUNT > 20) {
+          // post #15232
+          let versionSet = new Set(this.VERSION_CACHE.map(o => o.version));
+          let version = 1;
+          if (versionSet.has(1)) {
+            for (let i = 0; i < 20; i++) {
+              const id = this.VERSION_COUNT - i;
+              if (!versionSet.has(id)) {
+                version = id;
+                break;
+              }
+            }
+          }
+          return this.fetchVersionData(version);
+        }
       }
     });
   };
@@ -544,8 +579,10 @@ const TagDiffView = (() => {
     this.TAG_ADDED = new Set();
     this.TAG_UNCHANGED = new Set();
     this.TAG_REMOVED = new Set();
+    this.RATING_HISTORY = [];
     // post #1 version 1 updater: null
-    for (let { added_tags, removed_tags, id, version, updater, updated_at } of this.VERSION_CACHE) {
+    const orderedVersionCache = [...this.VERSION_CACHE].sort((a, b) => b.version - a.version);
+    for (let { added_tags, removed_tags, id, version, updater, updated_at, rating, rating_changed } of orderedVersionCache) {
       if (!updater) updater = { id: 0, name: "?", level_string: "Member", is_banned: false };
       const _detail = { id, version, updater, updated_at };
       for (let tag of added_tags) {
@@ -553,7 +590,7 @@ const TagDiffView = (() => {
           if (this.TAG_HISTORY[tag]) {
             this.TAG_HISTORY[tag].details.push({ status: 0, ..._detail });
             this.TAG_HISTORY[tag].versions.set(version, 0);
-            this.TAG_UNCHANGED.add(tag);
+            this.TAG_HISTORY[tag].details[0].status === 1 && this.TAG_UNCHANGED.add(tag);
           }
         } else {
           const detail = { status: 1, ..._detail };
@@ -579,6 +616,7 @@ const TagDiffView = (() => {
           this.TAG_REMOVED.add(tag);
         }
       }
+      if (rating_changed) this.RATING_HISTORY.push({ rating, ..._detail });
     }
   };
 
@@ -601,8 +639,53 @@ const TagDiffView = (() => {
     this.tagList.querySelectorAll(".tag-diff-view").forEach(li => li.classList.add("tag-diff-view-hidden"));
   };
 
+  TDV.highlightByVersion = function (tBody, currentRow) {
+    const lastSelectedVersion = tBody.dataset.lastSelected;
+    this.resetHighlightedVersion(tBody, lastSelectedVersion);
+    let currentVersion = currentRow.dataset.version;
+    if (lastSelectedVersion === currentVersion || (this.mode === 1 && currentRow.classList.contains("tdv-removed"))) {
+      delete tBody.dataset.lastSelected;
+      return;
+    }
+    tBody.dataset.lastSelected = currentVersion;
+    currentRow.classList.add("tdv-selected");
+    currentVersion = Number(currentVersion);
+    this.tagList.querySelectorAll("li.tag-diff-view").forEach(li => {
+      const tag = li.dataset.tagName;
+      const { versions, details } = this.TAG_HISTORY[tag];
+      if (versions.has(currentVersion)) {
+        li.classList.remove("tag-diff-view-dimmed");
+        const status = versions.get(currentVersion);
+        if (status === 0) li.classList.add("tag-diff-view-first");
+        else if (li.classList.contains("tag-diff-view-unchanged")) li.classList.add(status === 1 ? "tag-diff-view-added" : "tag-diff-view-removed");
+        else if (details[0].status === -status) li.classList.add("tag-diff-view-reversed");
+      } else {
+        li.classList.add("tag-diff-view-dimmed");
+        li.classList.remove("tag-diff-view-reversed", "tag-diff-view-first");
+      }
+    });
+    let rating = this.RATING_HISTORY.find(v => v.version === currentVersion)?.rating;
+    if (rating !== undefined) {
+      rating = rating || "?";
+      this.ratingMark.dataset.rating = rating;
+      this.ratingMark.textContent = rating.toUpperCase();
+    }
+  };
+
+  TDV.resetHighlightedVersion = function (tBody, version) {
+    tBody.querySelector(`tr[data-version="${version}"]`)?.classList.remove("tdv-selected");
+    this.tagList.querySelectorAll("li.tag-diff-view").forEach(li => {
+      li.classList.remove("tag-diff-view-dimmed", "tag-diff-view-reversed", "tag-diff-view-first");
+      if (li.classList.contains("tag-diff-view-unchanged")) li.classList.remove("tag-diff-view-added", "tag-diff-view-removed");
+    });
+    if (this.ratingMark) {
+      this.ratingMark.dataset.rating = "";
+      this.ratingMark.textContent = "»";
+    }
+  };
+
   TDV.loadTooltip = function () {
-    $("div.categorized-tag-list li.tag-diff-view:not(stt-style)").stt({
+    $("div.categorized-tag-list li.tag-diff-view:not(.stt-style)").stt({
       width: "auto",
       offsetX: 80,
       absoluteY: -10,
@@ -618,14 +701,9 @@ const TagDiffView = (() => {
         const { details } = this.TAG_HISTORY[tag] || {};
         if (!details)
           return '<p class="m-0 py-1 text-sm" style="text-align:center;width:180px"><i>No record: the implication may have been created after its subtag was removed.</i></p>';
-        let html = '<table class="text-xs stt-tdv"><thead><tr><th></th><th>Ver</th><th>Updater</th></tr></thead><tbody>';
-        for (let {
-          id,
-          status,
-          version,
-          updater: { id: uid, name: un, level_string, is_banned },
-          updated_at
-        } of details) {
+        let html = '<table class="text-xs stt-table stt-tdv"><thead><tr><th></th><th>Ver</th><th>Updater</th></tr></thead><tbody>';
+        const count = details.length;
+        details.forEach(({ id, status, version, updater: { id: uid, name: un, level_string, is_banned }, updated_at }, i) => {
           if (status === 0) {
             html += `<tr data-version="1" class="tdv-first"><td><span> </span></td><td><span title="${updated_at}">1 <a href="/post_versions?search[id]=${id}" target="_blank">»</a></span></td>`;
           } else {
@@ -636,7 +714,10 @@ const TagDiffView = (() => {
           else {
             html += `<td><a class="user user-${level_string.toLowerCase() + (is_banned ? " user-banned" : "")}"  data-user-id="${uid}" data-user-name="${un}" href="/users/${uid}" target="_blank">${un.replaceAll("_", " ")}</a></td></tr>`;
           }
-        }
+          if (!this.completed && this.VERSION_COUNT > 21 && ((i === count - 1 && version !== 1) || (i === count - 2 && details[i + 1].version === 1))) {
+            html += `<tr class ="tdv-elipsis"><td colspan="3">More...</td></tr>`;
+          }
+        });
         html += "</tbody></table>";
         return html;
       },
@@ -646,51 +727,63 @@ const TagDiffView = (() => {
           .find(".stt-tdv>tbody")
           .on("click", e => {
             const el = e.target;
-            const tbody = e.currentTarget;
+            const tBody = e.currentTarget;
             if (el.tagName === "A") return;
             const tr = el.closest("tr");
-            const lastSelected = tbody.dataset.lastSelected;
-            if (lastSelected) {
-              const tr = tbody.querySelector(`tr[data-version="${lastSelected}"]`);
-              tr.classList.remove("tdv-selected");
-            }
-            this.tagList.querySelectorAll("li.tag-diff-view").forEach(li => {
-              li.classList.remove("tag-diff-view-dimmed", "tag-diff-view-reversed", "tag-diff-view-first");
-              if (li.classList.contains("tag-diff-view-unchanged")) li.classList.remove("tag-diff-view-added", "tag-diff-view-removed");
-            });
-            let currentVersion = tr.dataset.version;
-            if (currentVersion === lastSelected || (this.mode === 1 && tr.classList.contains("tdv-removed"))) {
-              delete tbody.dataset.lastSelected;
-              return;
-            }
-            tbody.dataset.lastSelected = currentVersion;
-            currentVersion = Number(currentVersion);
-            tr.classList.add("tdv-selected");
-            this.tagList.querySelectorAll("li.tag-diff-view").forEach(li => {
-              const tag = li.dataset.tagName;
-              const { versions, details } = this.TAG_HISTORY[tag];
-              if (versions.has(currentVersion)) {
-                li.classList.remove("tag-diff-view-dimmed");
-                const status = versions.get(currentVersion);
-                if (status === 0) li.classList.add("tag-diff-view-first");
-                else if (li.classList.contains("tag-diff-view-unchanged")) li.classList.add(status === 1 ? "tag-diff-view-added" : "tag-diff-view-removed");
-                else if (details[0].status === -status) li.classList.add("tag-diff-view-reversed");
-              } else {
-                li.classList.add("tag-diff-view-dimmed");
-                li.classList.remove("tag-diff-view-reversed", "tag-diff-view-first");
-              }
-            });
+            if (tr.classList.contains("tdv-elipsis")) return document.querySelector(".tdv-count").click();
+            this.highlightByVersion(tBody, tr);
           });
       },
       onHide: (_, __, instance) => {
-        const tbody = instance.tooltip().find(".stt-tdv>tbody")[0];
-        if (!tbody) return;
-        const lastSelected = tbody.dataset.lastSelected;
-        tbody.querySelector(`tr[data-version="${lastSelected}"]`)?.classList.remove("tdv-selected");
-        this.tagList.querySelectorAll("li.tag-diff-view").forEach(li => {
-          li.classList.remove("tag-diff-view-dimmed", "tag-diff-view-reversed", "tag-diff-view-first");
-          if (li.classList.contains("tag-diff-view-unchanged")) li.classList.remove("tag-diff-view-added", "tag-diff-view-removed");
+        const tBody = instance.tooltip().find(".stt-tdv>tbody")[0];
+        tBody && this.resetHighlightedVersion(tBody, tBody.dataset.lastSelected);
+      }
+    });
+    $("#post-info-rating.tag-diff-view:not(.stt-style)").stt({
+      width: "auto",
+      offsetX: -20,
+      absoluteY: -5,
+      trigger: "manual",
+      templateEngineFunc: (_, instance) => {
+        instance.tooltip().find(".stt-content").css({
+          overflow: "hidden auto",
+          "max-height": "240px",
+          "overscroll-behavior-x": "contain",
+          "scrollbar-width": "thin"
         });
+        let html = '<table class="text-xs stt-table stt-tdv"><thead><tr><th></th><th>Ver</th><th>Updater</th></tr></thead><tbody>';
+        const count = this.RATING_HISTORY.length;
+        this.RATING_HISTORY.forEach(({ id, rating, version, updater: { id: uid, name: un, level_string, is_banned }, updated_at }, i) => {
+          // https://github.com/danbooru/danbooru/issues/1439
+          rating = rating || "?";
+          html += `<tr data-version="${version}"><td data-rating="${rating}"><span>${rating.toUpperCase()}</span></td><td title="${updated_at}"><a href="/post_versions?search[id]=${id}" target="_blank">${version}</a></td>`;
+          if (uid === 0) html += `<td><i>Anonymous</i></td></tr>`;
+          else {
+            html += `<td><a class="user user-${level_string.toLowerCase() + (is_banned ? " user-banned" : "")}"  data-user-id="${uid}" data-user-name="${un}" href="/users/${uid}" target="_blank">${un.replaceAll("_", " ")}</a></td></tr>`;
+          }
+          if (!this.completed && this.VERSION_COUNT > 21 && ((i === count - 1 && version !== 1) || (i === count - 2 && this.RATING_HISTORY[i + 1].version === 1))) {
+            html += `<tr class ="tdv-elipsis"><td colspan="3">More...</td></tr>`;
+          }
+        });
+        html += "</tbody></table>";
+        return html;
+      },
+      onShow: (_, __, instance) => {
+        instance
+          .tooltip()
+          .find(".stt-tdv>tbody")
+          .on("click", e => {
+            const el = e.target;
+            const tBody = e.currentTarget;
+            if (el.tagName === "A") return;
+            const tr = el.closest("tr");
+            if (tr.classList.contains("tdv-elipsis")) return document.querySelector(".tdv-count").click();
+            this.highlightByVersion(tBody, tr);
+          });
+      },
+      onHide: (_, __, instance) => {
+        const tBody = instance.tooltip().find(".stt-tdv>tbody")[0];
+        tBody && this.resetHighlightedVersion(tBody, tBody.dataset.lastSelected);
       }
     });
   };

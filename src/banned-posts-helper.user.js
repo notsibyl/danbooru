@@ -1422,7 +1422,7 @@ const HandleIqdbQueryPage = async () => {
   const json = await (await fetch("/iqdb_queries.json?" + Booru.searchParams.toString())).json();
   const container = document.querySelector("div.similar-images-component div.posts-container");
   const insertCount = BannedPostsHelper.insertPreview(container, json, 2);
-  Danbooru.Notice.info(insertCount ? `${insertCount} banned post${Utils.isPlural(insertCount)} found.` : "No banned posts found.");
+  if (insertCount) Danbooru.Notice.info(`${insertCount} banned post${Utils.isPlural(insertCount)} found.`);
   BannedPostsHelper.fixBlacklist(container);
   BannedPostsHelper.notify(true);
 };

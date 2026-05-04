@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Banned Posts Helper
 // @author         Sibyl
-// @version        0.9
+// @version        0.91
 // @icon           https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace      https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL    https://github.com/notsibyl/danbooru
@@ -67,8 +67,7 @@ const Booru = {
         break;
       case "posts":
         if (this.action === "index") await HandlePostIndexPage.initialize();
-        else if (this.action === "show") {
-        }
+        else if (this.action === "show");
         break;
       case "upload-media-assets":
       case "uploads":
@@ -501,28 +500,7 @@ const BannedPostsHelper = {
 
     if (type === 0) {
       article.classList.add("inline-block", "align-top", "p-2");
-    }
-    // Add upvote/downvote button
-    else if (type === 1) {
-      const hideScore = Danbooru.Cookie.get("post_preview_show_votes") === "false";
-      if (!hideScore) {
-        article.classList.add("post-preview-show-votes");
-        article.insertAdjacentHTML(
-          "beforeend",
-          `<div class="post-preview-score text-sm text-center mt-1">
-<span class="post-votes inline-flex gap-1" data-id="${id}">
-<a class="post-upvote-link inactive-link" data-remote="true" rel="nofollow" data-method="post" href="/posts/${id}/votes?score=1">
-<svg class="icon svg-icon upvote-icon" viewBox="0 0 448 512">
-<use fill="currentColor" href="${Booru.iconUri}#upvote"></use></svg></a>
-<span class="post-score inline-block text-center whitespace-nowrap align-middle min-w-4">
-<a rel="nofollow" href="/post_votes?search%5Bpost_id%5D=${id}&amp;variant=compact">${score}</a></span>
-<a class="post-downvote-link inactive-link" data-remote="true" rel="nofollow" data-method="post" href="/posts/${id}/votes?score=-1">
-<svg class="icon svg-icon downvote-icon" viewBox="0 0 448 512">
-<use fill="currentColor" href="${Booru.iconUri}#downvote"></use>
-</svg></a></span></div>`
-        );
-      }
-    }
+    } else if (type === 1);
     // Add similarity info
     else if (type === 2) {
       const level = similarity < 70 ? "low" : "high";
@@ -538,23 +516,58 @@ const BannedPostsHelper = {
 <use fill="currentColor" href="${Booru.iconUri}#globe"></use></svg></a>
 <a href="/media_assets/${media_asset.id}">${Booru.numberToHumanSize(media_asset.file_size)} .${media_asset.file_ext}, ${media_asset.image_width}×${media_asset.image_height}</a></div>${similarityHtml}</div>`
       );
-    }
-    // Add nothing
-    else if (type === 3);
+    } else if (type === 3);
     return article;
+  },
+  async insertVote(articles) {
+    const ids = articles.map(a => a.dataset.id);
+    if (!ids.length) return;
+    const resp = await (
+      await fetch("/post_votes.json", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+        },
+        method: "POST",
+        body: new URLSearchParams({
+          _method: "get",
+          limit: 200,
+          "search[post_id]": ids.join(","),
+          "search[user_id]": Booru.currentUserId
+        })
+      })
+    ).json();
+    const votes = {};
+    for (const i of resp) votes[i.post_id] = i;
+    for (const article of articles) {
+      const { id, score } = article.dataset;
+      const { id: vid, score: vote } = votes[id] || {};
+      let html = `<div class="post-preview-score text-sm text-center mt-1"><span class="post-votes inline-flex gap-1" data-id="${id}">`;
+      if (vote === 1) html += `<a class="post-upvote-link post-unvote-link active-link" data-remote="true" rel="nofollow" data-method="delete" href="/post_votes/${vid}">`;
+      else html += `<a class="post-upvote-link inactive-link" data-remote="true" rel="nofollow" data-method="post" href="/posts/${id}/votes?score=1">`;
+      html += `<svg class="icon svg-icon upvote-icon" viewBox="0 0 448 512"><use fill="currentColor" href="${Booru.iconUri}#upvote"></use></svg></a><span class="post-score inline-block text-center whitespace-nowrap align-middle min-w-4"><a rel="nofollow" href="/post_votes?search%5Bpost_id%5D=${id}&amp;variant=compact">${score}</a></span>`;
+      if (vote === -1) html += `<a class="post-downvote-link post-unvote-link active-link" data-remote="true" rel="nofollow" data-method="delete" href="/post_votes/${vid}">`;
+      else html += `<a class="post-downvote-link inactive-link" data-remote="true" rel="nofollow" data-method="post" href="/posts/${id}/votes?score=-1">`;
+      html += `<svg class="icon svg-icon downvote-icon" viewBox="0 0 448 512"><use fill="currentColor" href="${Booru.iconUri}#downvote"></use></svg></a></span></div>`;
+      article.insertAdjacentHTML("beforeend", html);
+    }
   },
   insertPreview(container, postDataArray, type, query = null) {
     const existingPosts = [...container.children];
     const postMap = {};
     for (const post of existingPosts) postMap[post.dataset.id] = post;
     let insertedCount = 0;
+    let insertedArticles = [];
     const all = postDataArray.map(post => {
       const postInfo = post.post || post;
       const existingPost = postMap[postInfo.id];
       if (existingPost) return existingPost;
       insertedCount++;
-      return this.buildPreview(postInfo, this.postPreviewSize, type, { query, similarity: post.score });
+      const article = this.buildPreview(postInfo, this.postPreviewSize, type, { query, similarity: post.score });
+      insertedArticles.push(article);
+      return article;
     });
+    const hideScore = Danbooru.Cookie.get("post_preview_show_votes") === "false";
+    if (type === 1 && !hideScore) this.insertVote(insertedArticles);
     container.append(...all);
     return insertedCount;
   },
@@ -1148,7 +1161,8 @@ const HandlePostShowPage = {
     return commentContainer;
   },
   patchEditForm({ source, tag_string_artist, tag_string_copyright, tag_string_character, tag_string_meta, tag_string_general, media_asset }) {
-    return `<section id="edit" style="display:none"><div class="source-data card-outlined p-4 mt-4 mb-4"><a class="source-data-fetch" href="/source">Fetch source data</a> <svg class="icon svg-icon spinner-icon animate-spin source-data-loading" viewBox="0 0 512 512"><use fill="currentColor" href="${Booru.iconUri}#spinner"/></svg></div><form class="simple_form edit_post" id="form" autocomplete="off" novalidate action="/posts" accept-charset="UTF-8" method="post"><input type="hidden" name="upload_media_asset_id" value=""><input type="hidden" name="authenticity_token" value="${Danbooru.Utility.meta("csrf-token")}"><div class="input stacked-input hidden post_q"><input name="q" value="${Booru.searchParams.get("q") || ""}" class="hidden" type="hidden"></div><div class="input stacked-input radio_buttons required post_rating radio-button-group thin-x-scrollbar text-xs"><label class="radio_buttons required"><abbr title="required">*</abbr> Rating <a class="wiki-link inactive-link" target="_blank" href="/wiki_pages/howto:rate"><svg class="icon svg-icon help-icon" viewBox="0 0 512 512"><use fill="currentColor" href="${Booru.iconUri}#help"/></svg></a></label><input type="hidden" name="post[rating]"><span class="radio radio"><input class="radio_buttons required" required type="radio" value="e" name="post[rating]" id="post_rating_e"><label class="collection_radio_buttons" for="post_rating_e">Explicit</label></span><span class="radio radio"><input class="radio_buttons required" required type="radio" value="q" name="post[rating]" id="post_rating_q"><label class="collection_radio_buttons" for="post_rating_q">Questionable</label></span><span class="radio radio"><input class="radio_buttons required" required type="radio" value="s" name="post[rating]" id="post_rating_s"><label class="collection_radio_buttons" for="post_rating_s">Sensitive</label></span><span class="radio radio"><input class="radio_buttons required" required type="radio" value="g" checked name="post[rating]" id="post_rating_g"><label class="collection_radio_buttons" for="post_rating_g">General</label></span></div><div class="input stacked-input string optional post_parent_id"><label class="string optional" for="post_parent_id">Parent</label><input class="w-full max-w-360px string optional" name="post[parent_id]" id="post_parent_id"></div><div class="input stacked-input string optional post_source"><label class="string optional" for="post_source">Source</label><input class="w-full max-w-360px string optional" value="${source}" name="post[source]" id="post_source"></div><div class="input fixed-width-container"><div class="flex justify-between"><span class="inline-flex gap-1 items-center"><label for="post_tag_string">Tags</label> <a id="open-edit-dialog" data-shortcut="shift+e" href="javascript:void(0)"><svg class="icon svg-icon external-link-icon text-xxs" viewBox="0 0 512 512"><use fill="currentColor" href="${Booru.iconUri}#external-link"/></svg></a></span><span data-tag-counter data-for="#post_tag_string" class="text-muted text-sm"><span class="tag-count"></span></span></div><div class="input stacked-input text optional post_tag_string field_with_hint"><textarea class="text optional text-sm" data-autocomplete="tag-edit" data-shortcut="e" name="post[tag_string]" id="post_tag_string">${[tag_string_artist, tag_string_copyright, tag_string_character, tag_string_meta, tag_string_general].join("\n").trim()}</textarea><span class="hint fineprint"><span class="desktop-only">Ctrl+Enter to submit</span></span></div></div><div class="input"><input type="submit" name="commit" value="Submit" class="button-primary" data-disable-with="Submit"></div><div id="related-tags-container" class="related-tags fixed-width-container flex flex-col gap-2" data-media-asset-id="${media_asset.id}"><div class="card p-2 h-fit space-y-1 general-related-tags-column hidden" x-data='{"collapsed":true}'><div class="related-tags-header flex items-center justify-between gap-2 pr-2 cursor-pointer select-none" x-on:click="collapsed = !collapsed; !collapsed && Danbooru.RelatedTag.update_related_tags($event)"><h6 class="inline-flex gap-1 items-center"><svg class="icon svg-icon spinner-icon animate-spin text-muted invisible" viewBox="0 0 512 512" x-cloak="true" x-bind:class="{ invisible: !$store.relatedTags.loading }"><use fill="currentColor" href="${Booru.iconUri}#spinner"/></svg> Related: <a class="related-tags-current-tag" x-on:click.stop="Danbooru.RelatedTag.update_related_tags($event)" href="javascript:void(0)"></a></h6><svg class="icon svg-icon chevron-down-icon link-color rotate-180" viewBox="0 0 448 512" x-cloak="true" x-show="collapsed"><use fill="currentColor" href="${Booru.iconUri}#chevron-down"/></svg> <svg class="icon svg-icon chevron-down-icon link-color" viewBox="0 0 448 512" x-cloak="true" x-show="!collapsed"><use fill="currentColor" href="${Booru.iconUri}#chevron-down"/></svg></div></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 translated-tags-related-tags-column hidden"></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 ai-tags-related-tags-column hidden hidden"></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 frequent-related-tags-column hidden"></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 recent-related-tags-column hidden"></div></div></form></section>`;
+    const tagString = [tag_string_artist, tag_string_copyright, tag_string_character, tag_string_meta, tag_string_general].filter(Boolean).join("\n") + " ";
+    return `<section id="edit" style="display:none"><div class="source-data card-outlined p-4 mt-4 mb-4"><a class="source-data-fetch" href="/source">Fetch source data</a> <svg class="icon svg-icon spinner-icon animate-spin source-data-loading" viewBox="0 0 512 512"><use fill="currentColor" href="${Booru.iconUri}#spinner"/></svg></div><form class="simple_form edit_post" id="form" autocomplete="off" novalidate action="/posts" accept-charset="UTF-8" method="post"><input type="hidden" name="upload_media_asset_id" value=""><input type="hidden" name="authenticity_token" value="${Danbooru.Utility.meta("csrf-token")}"><div class="input stacked-input hidden post_q"><input name="q" value="${Booru.searchParams.get("q") || ""}" class="hidden" type="hidden"></div><div class="input stacked-input radio_buttons required post_rating radio-button-group thin-x-scrollbar text-xs"><label class="radio_buttons required"><abbr title="required">*</abbr> Rating <a class="wiki-link inactive-link" target="_blank" href="/wiki_pages/howto:rate"><svg class="icon svg-icon help-icon" viewBox="0 0 512 512"><use fill="currentColor" href="${Booru.iconUri}#help"/></svg></a></label><input type="hidden" name="post[rating]"><span class="radio radio"><input class="radio_buttons required" required type="radio" value="e" name="post[rating]" id="post_rating_e"><label class="collection_radio_buttons" for="post_rating_e">Explicit</label></span><span class="radio radio"><input class="radio_buttons required" required type="radio" value="q" name="post[rating]" id="post_rating_q"><label class="collection_radio_buttons" for="post_rating_q">Questionable</label></span><span class="radio radio"><input class="radio_buttons required" required type="radio" value="s" name="post[rating]" id="post_rating_s"><label class="collection_radio_buttons" for="post_rating_s">Sensitive</label></span><span class="radio radio"><input class="radio_buttons required" required type="radio" value="g" checked name="post[rating]" id="post_rating_g"><label class="collection_radio_buttons" for="post_rating_g">General</label></span></div><div class="input stacked-input string optional post_parent_id"><label class="string optional" for="post_parent_id">Parent</label><input class="w-full max-w-360px string optional" name="post[parent_id]" id="post_parent_id"></div><div class="input stacked-input string optional post_source"><label class="string optional" for="post_source">Source</label><input class="w-full max-w-360px string optional" value="${source}" name="post[source]" id="post_source"></div><div class="input fixed-width-container"><div class="flex justify-between"><span class="inline-flex gap-1 items-center"><label for="post_tag_string">Tags</label> <a id="open-edit-dialog" data-shortcut="shift+e" href="javascript:void(0)"><svg class="icon svg-icon external-link-icon text-xxs" viewBox="0 0 512 512"><use fill="currentColor" href="${Booru.iconUri}#external-link"/></svg></a></span><span data-tag-counter data-for="#post_tag_string" class="text-muted text-sm"><span class="tag-count"></span></span></div><div class="input stacked-input text optional post_tag_string field_with_hint"><textarea class="text optional text-sm" data-autocomplete="tag-edit" data-shortcut="e" name="post[tag_string]" id="post_tag_string">${tagString}</textarea><span class="hint fineprint"><span class="desktop-only">Ctrl+Enter to submit</span></span></div></div><div class="input"><input type="submit" name="commit" value="Submit" class="button-primary" data-disable-with="Submit"></div><div id="related-tags-container" class="related-tags fixed-width-container flex flex-col gap-2" data-media-asset-id="${media_asset.id}"><div class="card p-2 h-fit space-y-1 general-related-tags-column hidden" x-data='{"collapsed":true}'><div class="related-tags-header flex items-center justify-between gap-2 pr-2 cursor-pointer select-none" x-on:click="collapsed = !collapsed; !collapsed && Danbooru.RelatedTag.update_related_tags($event)"><h6 class="inline-flex gap-1 items-center"><svg class="icon svg-icon spinner-icon animate-spin text-muted invisible" viewBox="0 0 512 512" x-cloak="true" x-bind:class="{ invisible: !$store.relatedTags.loading }"><use fill="currentColor" href="${Booru.iconUri}#spinner"/></svg> Related: <a class="related-tags-current-tag" x-on:click.stop="Danbooru.RelatedTag.update_related_tags($event)" href="javascript:void(0)"></a></h6><svg class="icon svg-icon chevron-down-icon link-color rotate-180" viewBox="0 0 448 512" x-cloak="true" x-show="collapsed"><use fill="currentColor" href="${Booru.iconUri}#chevron-down"/></svg> <svg class="icon svg-icon chevron-down-icon link-color" viewBox="0 0 448 512" x-cloak="true" x-show="!collapsed"><use fill="currentColor" href="${Booru.iconUri}#chevron-down"/></svg></div></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 translated-tags-related-tags-column hidden"></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 ai-tags-related-tags-column hidden hidden"></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 frequent-related-tags-column hidden"></div><div x-data='{"collapsed":false}' class="tag-column card p-2 h-fit space-y-1 recent-related-tags-column hidden"></div></div></form></section>`;
   },
   /* Phase III */
   fixDialog() {

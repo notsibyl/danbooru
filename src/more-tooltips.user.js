@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          More Tooltips
 // @author        Sibyl
-// @version       2.81
+// @version       2.83
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -68,7 +68,7 @@ const TooltipHelper = {
         `.stt-content>div.artist-info{display:flex;flex-direction:column}.stt-content>div.artist-info>ul{max-height:240px;padding-right:.2rem;margin-bottom:.3rem;text-align:left}.stt-content>div.artist-info li{line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stt-bubble div.artist-info>p:last-of-type{display:inline-block;text-align:left;margin:0}.stt-content>div.artist-info>p>span:last-of-type{float:right;margin-right:.3rem;color:var(--muted-text-color)}` +
         ".stt-bubble:has(.stt-table){z-index:1}.stt-table{margin-right:.2rem}.stt-table thead tr{border-bottom:2px solid var(--table-header-border-color)}.stt-table tbody tr:not(:last-child){border-bottom:1px solid var(--table-row-border-color)}.stt-table tbody tr:hover{background:var(--table-row-hover-background)}.stt-table tr:nth-child(2n){background:var(--table-even-row-background)}.stt-table :is(td,th){line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;padding-right:.5rem}.stt-table th{text-align:center;user-select:none}" +
         "table.stt-favgroup-table td,table.stt-favgroup-table th:first-child{text-align:left}" +
-        '.categorized-tag-list>h3:has(+ ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden)))),.categorized-tag-list>ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden))){display:none}.tag-diff-view-added,.tag-diff-view-removed.tag-diff-view-reversed,.tag-diff-view-unchanged.tag-diff-view-added,table.stt-tdv tr.tdv-added.tdv-selected,table.stt-tdv tr.tdv-added:hover{background-color:var(--wiki-page-versions-diff-ins-background)}.tag-diff-view-added:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-ins-background) 80%,#fff)}.tag-diff-view-added.tag-diff-view-reversed,.tag-diff-view-removed,.tag-diff-view-unchanged.tag-diff-view-removed,table.stt-tdv tr.tdv-removed.tdv-selected,table.stt-tdv tr.tdv-removed:hover{background-color:var(--wiki-page-versions-diff-del-background)}.tag-diff-view-removed:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-del-background) 80%,#fff)}.tag-diff-view-first,.tag-diff-view-unchanged,table.stt-tdv tr.tdv-first.tdv-selected{background-color:var(--default-border-color)}.tag-diff-view-first:hover,.tag-diff-view-unchanged:hover{background-color:color-mix(in srgb,var(--default-border-color) 80%,#fff)}.tag-diff-view-dimmed{opacity:.3}.tag-diff-view.tag-diff-view-hidden{background-color:unset}.tag-diff-view-removed.tag-diff-view-hidden{display:none}table.stt-tdv tbody tr:not(.tdv-elipsis){cursor:alias}table.stt-tdv a.user{display:unset}table.stt-tdv td:first-child{text-align:center;user-select:none}table.stt-tdv td:nth-child(2){text-align:right}table.stt-tdv td:last-child{text-align:left}table.stt-tdv td[data-rating]{padding-left:.5rem}.tdv-selected{background:var(--table-row-hover-background)}.tdv-elipsis td{text-align:center!important;color:var(--muted-text-color);font-style:italic}.tdv-added span{color:var(--forum-topic-status-approved-color)}.tdv-removed span{color:var(--forum-topic-status-new-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) :is([data-rating=""],[data-rating="?"]){color:var(--muted-text-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="g"]{color:var(--meta-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="s"]{color:var(--copyright-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="q"]{color:var(--character-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="e"]{color:var(--meta-tag-color)}'
+        '.categorized-tag-list>h3:has(+ ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden)))),.categorized-tag-list>ul:not(:has(.tag-diff-view-removed:not(.tag-diff-view-hidden))){display:none}.stt-tdv tr.tdv-added.tdv-selected,.stt-tdv tr.tdv-added:hover,.tag-diff-view-added,.tag-diff-view-removed.tag-diff-view-reversed,.tag-diff-view-unchanged.tag-diff-view-added{background-color:var(--wiki-page-versions-diff-ins-background)}.tag-diff-view-added:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-ins-background) 80%,#fff)}.stt-tdv tr.tdv-removed.tdv-selected,.stt-tdv tr.tdv-removed:hover,.tag-diff-view-added.tag-diff-view-reversed,.tag-diff-view-removed,.tag-diff-view-unchanged.tag-diff-view-removed{background-color:var(--wiki-page-versions-diff-del-background)}.tag-diff-view-removed:hover{background-color:color-mix(in srgb,var(--wiki-page-versions-diff-del-background) 80%,#fff)}.stt-tdv tr.tdv-first.tdv-selected,.tag-diff-view-first,.tag-diff-view-unchanged{background-color:var(--default-border-color)}.tag-diff-view-first:hover,.tag-diff-view-unchanged:hover{background-color:color-mix(in srgb,var(--default-border-color) 80%,#fff)}.tag-diff-view-dimmed{opacity:.3}.tag-diff-view.tag-diff-view-hidden{background-color:unset}.tag-diff-view-removed.tag-diff-view-hidden{display:none}.stt-tdv tbody tr:not(.tdv-elipsis){cursor:alias}.stt-tdv a.user{display:unset}.stt-tdv td:first-child{text-align:center;user-select:none}.stt-tdv td:nth-child(2){text-align:right}.stt-tdv td:last-child{text-align:left}.stt-tdv td[data-rating]{padding-left:.5rem}.stt-table.stt-tdv .tdv-selected{background:var(--table-row-hover-background)}.tdv-elipsis td{text-align:center!important;color:var(--muted-text-color);font-style:italic}.tdv-added span{color:var(--forum-topic-status-approved-color)}.tdv-removed span{color:var(--forum-topic-status-new-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) :is([data-rating=""],[data-rating="?"]){color:var(--muted-text-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="g"]{color:var(--meta-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="s"]{color:var(--copyright-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="q"]{color:var(--character-tag-color)}:is(#post-info-rating.tag-diff-view,.stt-tdv) [data-rating="e"]{color:var(--meta-tag-color)}'
     );
 
     // Simple Tooltip v1.0.12 - Forked from [tipso](https://github.com/object505/tipso)
@@ -452,7 +452,7 @@ const TagDiffView = (() => {
       this.tagList.addEventListener("click", async e => {
         let el = e.target;
         if (el.tagName !== "LI" && el.parentElement.tagName === "LI") el = el.parentElement;
-        if (el.classList.contains("tag-diff-view") && !el.classList.contains("tag-diff-view-hidden")) await $(el).stt("show");
+        if (!this.locked && el.classList.contains("tag-diff-view") && !el.classList.contains("tag-diff-view-hidden")) await $(el).stt("show");
       });
     }
   };
@@ -485,16 +485,7 @@ const TagDiffView = (() => {
           a2.textContent = this.completed ? "Hide diffs" : "Show details";
           break;
         case 1:
-          a2.style.opacity = "0.6";
-          a2.textContent = "Fetching details...";
-          await this.loadMore();
-          a2.style.opacity = "";
-          if (this.completed) {
-            this.showDiff(true);
-            this.loadTooltip();
-            this.mode = 2;
-            a2.textContent = "Hide diffs";
-          }
+          await this.loadDetails();
           break;
         case 2:
           this.hideDiff();
@@ -504,7 +495,23 @@ const TagDiffView = (() => {
     });
   };
 
-  TDV.loadMore = async function () {
+  TDV.loadDetails = async function () {
+    this.locked = true;
+    const a = document.querySelector(".tdv-count");
+    a.style.opacity = "0.6";
+    a.textContent = "Fetching details...";
+    await this.loadAllVersions();
+    a.style.opacity = "";
+    if (this.completed) {
+      this.showDiff(true);
+      this.loadTooltip();
+      this.mode = 2;
+      a.textContent = "Hide diffs";
+    }
+    this.locked = false;
+  };
+
+  TDV.loadAllVersions = async function () {
     if (this.completed) return;
     try {
       if (this.VERSION_COUNT > 21) {
@@ -639,11 +646,22 @@ const TagDiffView = (() => {
     this.tagList.querySelectorAll(".tag-diff-view").forEach(li => li.classList.add("tag-diff-view-hidden"));
   };
 
-  TDV.highlightByVersion = function (tBody, currentRow) {
+  TDV.highlightByVersion = async function (tBody, currentRow, tooltipInstance) {
     const lastSelectedVersion = tBody.dataset.lastSelected;
     this.resetHighlightedVersion(tBody, lastSelectedVersion);
     let currentVersion = currentRow.dataset.version;
-    if (lastSelectedVersion === currentVersion || (this.mode === 1 && currentRow.classList.contains("tdv-removed"))) {
+    if (this.mode === 1 && currentRow.classList.contains("tdv-removed")) {
+      delete tBody.dataset.lastSelected;
+      const $el = tooltipInstance.$element,
+        el = tooltipInstance.element;
+      this.lastClicked = { element: el, version: currentVersion };
+      tooltipInstance.close();
+      await this.loadDetails();
+      await $el.stt("show");
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (lastSelectedVersion === currentVersion) {
       delete tBody.dataset.lastSelected;
       return;
     }
@@ -725,14 +743,25 @@ const TagDiffView = (() => {
         instance
           .tooltip()
           .find(".stt-tdv>tbody")
-          .on("click", e => {
+          .on("click", async e => {
             const el = e.target;
             const tBody = e.currentTarget;
             if (el.tagName === "A") return;
             const tr = el.closest("tr");
-            if (tr.classList.contains("tdv-elipsis")) return document.querySelector(".tdv-count").click();
-            this.highlightByVersion(tBody, tr);
+            if (tr.classList.contains("tdv-elipsis")) {
+              instance.close();
+              await this.loadDetails();
+              instance.$element.stt("show");
+              instance.element.scrollIntoView({ behavior: "smooth", block: "center" });
+              return;
+            }
+            this.highlightByVersion(tBody, tr, instance);
           });
+        if (this.lastClicked) {
+          const { element, version } = this.lastClicked;
+          if (element === instance.element) instance.tooltip().find(`tr[data-version=${version}]`).trigger("click");
+          this.lastClicked = null;
+        }
       },
       onHide: (_, __, instance) => {
         const tBody = instance.tooltip().find(".stt-tdv>tbody")[0];
@@ -772,13 +801,19 @@ const TagDiffView = (() => {
         instance
           .tooltip()
           .find(".stt-tdv>tbody")
-          .on("click", e => {
+          .on("click", async e => {
             const el = e.target;
             const tBody = e.currentTarget;
             if (el.tagName === "A") return;
             const tr = el.closest("tr");
-            if (tr.classList.contains("tdv-elipsis")) return document.querySelector(".tdv-count").click();
-            this.highlightByVersion(tBody, tr);
+            if (tr.classList.contains("tdv-elipsis")) {
+              instance.close();
+              await this.loadDetails();
+              instance.$element.stt("show");
+              instance.element.scrollIntoView({ behavior: "smooth", block: "center" });
+              return;
+            }
+            this.highlightByVersion(tBody, tr, instance);
           });
       },
       onHide: (_, __, instance) => {

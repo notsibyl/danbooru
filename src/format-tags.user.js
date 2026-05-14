@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Format Tags
 // @author        Sibyl
-// @version       0.6
+// @version       0.7
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://dandonmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -168,7 +168,7 @@ const FormatTags = (() => {
     }
     return missingTags.size;
   };
-  const sortAndClassifyTags = async textarea => {
+  const sortAndClassifyTags = async (textarea, compact = false) => {
     const text = textarea.value;
     const tokens = Booru.tokenizer(text, EDIT_METATAGS, true);
 
@@ -319,13 +319,18 @@ const FormatTags = (() => {
     const categoryOrder = [1, 3, 4, 5, 0];
 
     let newText = "";
+    if (compact) {
+      const tags = Object.values(classified.tagsByCategory).flat();
+      tags.sort(sortTags);
+      if (tags.length) newText += tags.join(" ") + "\n";
+    }
 
     for (const cat of categoryOrder) {
       let canBeIgnored = ignoredCategory[cat];
       const tags = classified.tagsByCategory[cat] || [];
       const includedTags = tags.filter(tag => !tag.startsWith("-"));
       if (tags.length) {
-        newText += classified.tagsByCategory[cat].join(" ") + "\n";
+        if (!compact) newText += classified.tagsByCategory[cat].join(" ") + "\n";
         if (includedTags.length === 0) canBeIgnored = ignoredCategory[cat] || false;
         else continue;
       }
@@ -394,7 +399,7 @@ const FormatTags = (() => {
       a.style.color = "var(--text-mute)";
       a.textContent = "Checking...";
       try {
-        await sortAndClassifyTags(tagBox);
+        await sortAndClassifyTags(tagBox, e.ctrlKey || e.shiftKey || e.altKey || e.metaKey);
       } catch {
       } finally {
         tagBox.readOnly = false;
@@ -415,7 +420,10 @@ const FormatTags = (() => {
 
 const dataset = document.body.dataset;
 
-if (((dataset.controller === "upload-media-assets" || dataset.controller === "uploads") && dataset.action === "show") || (dataset.controller === "posts" && dataset.action === "index"))
+if (
+  ((dataset.controller === "upload-media-assets" || dataset.controller === "uploads") && dataset.action === "show") ||
+  (dataset.controller === "posts" && dataset.action === "index")
+)
   FormatTags.initialize();
 else
   (cb => {

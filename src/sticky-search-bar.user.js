@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Sticky Search Bar
 // @author        Sibyl
-// @version       1.9
+// @version       1.91
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -47,9 +47,11 @@ const addStyle = css => document.head.appendChild(createElement("style", { textC
 
 function main() {
   let searchForm = document.getElementById("search-box-form"),
-    searchInput;
+    searchInput,
+    createdByMe = true;
   if (!searchForm && !alwaysShowSearchBar) return;
   if (searchForm) {
+    createdByMe = false;
     searchInput = document.getElementById("tags");
   } else {
     searchForm = createElement("form", { id: "search-box-form", className: "flex", action: "/posts", "accept-charset": "UTF-8", method: "get" });
@@ -81,10 +83,9 @@ function main() {
   document.getElementById("search-box")?.remove();
   document.querySelector('#post-sections a[href="#search-box"]')?.remove();
   setTimeout(() => {
-    const ac = $("#tags").data("ui-autocomplete");
-    if (!ac) new Danbooru.Autocomplete(searchInput, "tag_query");
+    if (createdByMe) new Danbooru.Autocomplete(searchInput, "tag_query");
     $(searchInput).autocomplete("option", "appendTo", "#search-header");
-  }, 0);
+  });
   const bgConfig = !useAcrylicBackground
     ? "}#search-header{background-color:var(--body-background-color)}"
     : `#top{background-color:transparent}#main-menu{${acrylicConfig.b};${acrylicConfig.rbg}}#main-menu .current{${acrylicConfig.rbgc}}#subnav-menu{${acrylicConfig.b};${acrylicConfig.sbg}}}#search-header{${acrylicConfig.b};${acrylicConfig.bg}}@media (prefers-color-scheme:dark){#search-header{${acrylicConfig.d.bg}}}@media screen and (max-width:660px) and (prefers-color-scheme:dark){#main-menu{${acrylicConfig.d.rbg}}#main-menu .current{${acrylicConfig.d.rbgc}}#subnav-menu{${acrylicConfig.d.sbg}}}`;

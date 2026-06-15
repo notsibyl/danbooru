@@ -240,10 +240,9 @@ A script that highlights tag changes on a post.
 
 #### [Install](/src/tag-diff-view.user.js?raw=1)
 
-### 📕 ~~Fix Xiaohongshu / RedNote Post URL~~
+### 📕 Fix Xiaohongshu / RedNote Post URL
 
 > [!IMPORTANT]
-> **Currently unavailable.**\
 > This script is designed for the PC web client only. It hasn’t been tested in mobile browsers running in desktop mode.
 
 This is a userscript that’s not directly related to Danbooru, but it’s meant to help some users check the sources of images originally posted on Xiaohongshu (RedNote).

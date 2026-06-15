@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Sticky Search Bar
 // @author        Sibyl
-// @version       1.91
+// @version       1.92
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -91,7 +91,7 @@ function main() {
     : `#top{background-color:transparent}#main-menu{${acrylicConfig.b};${acrylicConfig.rbg}}#main-menu .current{${acrylicConfig.rbgc}}#subnav-menu{${acrylicConfig.b};${acrylicConfig.sbg}}}#search-header{${acrylicConfig.b};${acrylicConfig.bg}}@media (prefers-color-scheme:dark){#search-header{${acrylicConfig.d.bg}}}@media screen and (max-width:660px) and (prefers-color-scheme:dark){#main-menu{${acrylicConfig.d.rbg}}#main-menu .current{${acrylicConfig.d.rbgc}}#subnav-menu{${acrylicConfig.d.sbg}}}`;
   // Note box zIndex: 100
   addStyle(
-    "body{height:unset;min-height:100%}#search-header{position:sticky;top:0;z-index:101;}#search-box-form{min-width:180px;width:50vw;margin:0 30px;padding:.5rem 0}#search-box-form input{height:26px}#app-name-header{display:none}#notice{top:calc(1rem + 26px)}#main-menu a{outline-offset:-1px}header#top,header#top>nav{margin-top:0!important}@media screen and (max-width:660px){header#top{z-index:101;position:sticky;top:calc(26px + 1.5rem)}header#top>div{display:block;margin:0}#app-name-header{display:block;position:fixed;top:.3rem;left:.5rem}header#top>div>a{position:fixed;top:.7rem;right:.5rem}#search-box-form{width:70vw;transition:width 0.2s ease;margin:0 auto;padding:.75rem 0}#search-box-form:focus-within{width:90vw}#search-box-form input#tags{min-width:180px}#search-header:focus-within{z-index:102}#search-header .ui-menu{width:70vw!important}#notice{top:calc(1.5rem + 26px)}" +
+    "body{height:unset;min-height:100%}#search-header{position:sticky;top:0;z-index:101;}#search-box-form{min-width:180px;width:50vw;margin:0 30px;padding:.5rem 0}#search-box-form input{height:26px}#search-box-form button{display:inline-flex;align-items:center;padding:2px 10px;border-left:none;border-radius:0}#app-name-header{display:none}#notice{top:calc(1rem + 26px)}#main-menu a{outline-offset:-1px}header#top,header#top>nav{margin-top:0!important}@media screen and (max-width:660px){header#top{z-index:101;position:sticky;top:calc(26px + 1.5rem)}header#top>div{display:block;margin:0}#app-name-header{display:block;position:absolute;top:calc(-28px - 1rem);left:.5rem}header#top>div>a{position:absolute;top:calc(-23.5px - 1rem);right:.5rem}#search-box-form{width:70vw;transition:width 0.2s ease;margin:0 auto;padding:.75rem 0}#search-box-form:focus-within{width:90vw}#search-box-form input#tags{min-width:180px}#search-header:focus-within{z-index:102}#search-header .ui-menu{width:70vw!important}#notice{top:calc(1.5rem + 26px)}" +
       bgConfig
   );
   document.getElementById("app-logo").addEventListener("click", e => {

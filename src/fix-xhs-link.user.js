@@ -1,24 +1,24 @@
 // ==UserScript==
 // @name          📕🔗🔧
 // @author        Sibyl
-// @version       1.6
+// @version       1.7
 // @icon          https://favicon.is/xiaohongshu.com
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
 // @downloadURL   https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/fix-xhs-link.user.js
 // @updateURL     https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/fix-xhs-link.user.js
 // @match         https://www.xiaohongshu.com/*
+// @match         https://www.rednote.com/*
 // @grant         GM_registerMenuCommand
 // @run-at        document-end
 // ==/UserScript==
-
-// Block error logs on xiaohongshu.com:
-// -/^Error$/ -url:apm-fe.xiaohongshu.com -url:t2.xiaohongshu.com
 
 (async () => {
   "use strict";
 
   if (typeof unsafeWindow === "undefined") unsafeWindow = window;
+
+  const API_DOMAIN = location.host.indexOf("rednote") > -1 ? "webapi.rednote.com" : "edith.xiaohongshu.com";
 
   // Non-standard base64 encode/decode
   // prettier-ignore
@@ -160,14 +160,15 @@
     let a = api;
     if (typeof params === "object" || typeof params === "string") a += JSON.stringify(params);
     let b = MD5(a);
-    const c = {
-      x0: "4.2.5", // JSON.parse(B64.decode(any_x_s_value.slice(4))).x0
-      x1: unsafeWindow.xsecappid || "xhs-pc-web",
+    let c = MD5(api);
+    const d = {
+      x0: "4.3.5",
+      x1: xsecappid || "xhs-pc-web",
       x2: platform,
-      x3: unsafeWindow.mnsv2(a, b),
-      x4: typeof params
+      x3: mnsv2(a, b, c),
+      x4: params ? typeof params : ""
     };
-    return "XYS_" + B64.encode(JSON.stringify(c));
+    return "XYS_" + B64.encode(JSON.stringify(d));
   }
 
   /* function getSigCount(e) {
@@ -198,10 +199,10 @@
       s1: "",
       x0: localStorage.getItem("b1b1") || "1",
       // x1, x3, x4: window.o({})
-      x1: "4.0.16",
+      x1: "4.3.5",
       x2: platform,
-      x3: unsafeWindow.xsecappid || "xhs-pc-web",
-      x4: "4.76.0",
+      x3: xsecappid || "xhs-pc-web",
+      x4: "4.86.0",
       x5: a1,
       x6: "",
       x7: "",
@@ -218,12 +219,37 @@
     return t;
   }
 
+  function randInt(min, max) {
+    const n = new Uint32Array(1);
+    crypto.getRandomValues(n);
+    return min + (n[0] % (max - min + 1));
+  }
+
+  function randomHex(length) {
+    const chars = "abcdef0123456789";
+    let out = "";
+    for (let i = 0; i < length; i++) {
+      out += chars[randInt(0, chars.length - 1)];
+    }
+    return out;
+  }
+
+  function xray_trace_id(timestampMs = null, seq = null) {
+    if (timestampMs == null) timestampMs = Date.now();
+    if (seq == null) seq = randInt(0, 8388607); // 2^23 - 1
+    const part1 = ((BigInt(timestampMs) << 23n) | BigInt(seq)).toString(16).padStart(16, "0");
+    const part2 = randomHex(16);
+    return part1 + part2;
+  }
+
   function get_sign(api, params) {
+    const ts = Date.now();
     return {
       "x-s": xs(api, params),
-      "x-t": +new Date() + "",
+      "x-t": String(ts),
       "x-s-common": xs_common(),
-      "x-b3-traceid": x_trace_id()
+      "x-b3-traceid": x_trace_id(),
+      "x-xray-traceid": xray_trace_id(ts)
     };
   }
 
@@ -234,8 +260,8 @@
       headers["Content-Type"] = "application/json";
       body = JSON.stringify(params);
     }
-    return await fetch("//edith.xiaohongshu.com" + api, {
-      referrer: "https://www.xiaohongshu.com/",
+    return await fetch(`//${API_DOMAIN}${api}`, {
+      referrer: location.origin,
       headers,
       body,
       method,
@@ -273,7 +299,7 @@
   unsafeWindow.unfav = unfav;
   unsafeWindow.fav = fav; */
 
-  const full_url = (note_id, xsec_token) => `https://www.xiaohongshu.com/explore/${note_id}?xsec_token=${xsec_token}`;
+  const full_url = (note_id, xsec_token) => `${location.origin}/explore/${note_id}?xsec_token=${xsec_token}`;
 
   async function get_xsec_token_url(note_id) {
     let note_in_fav = await show_fav();

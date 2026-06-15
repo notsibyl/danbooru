@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Format Tags
 // @author        Sibyl
-// @version       0.7
+// @version       0.8
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://dandonmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -181,6 +181,7 @@ const FormatTags = (() => {
     };
     const tagMap = new Map();
     const tokensToQuery = [];
+    const ignoredCategory = { 0: false, 1: false, 3: false, 4: false, 5: true };
 
     let hasRated = Boolean(document.getElementById("quick-edit-div")) || RATING.some(r => document.getElementById(`post_rating_${r}`)?.checked === true);
 
@@ -190,21 +191,22 @@ const FormatTags = (() => {
         let name = token.name;
         let value = token.value;
         let full = `${n}${name}:${value}`;
+        if ((token.negated && !NEGATABLE_METATAGS.some(n => n === name)) || token.or) {
+          classified.invalid.push(full);
+          continue;
+        }
         if (name in RECLASS_METATAGS) {
           name = SHORT_NAME_MAPPING[name] || name;
           if (!validator(token.quoted || value)) {
             classified.invalid.push(full);
             continue;
           }
+          if (name !== "ch" && name !== "co") ignoredCategory[RECLASS_METATAGS[name]] = true;
         } else if (name === "rating") {
           if (RATING.some(r => value.startsWith(r))) {
             hasRated = true;
-            full = `${n}${name}:${value.slice(0, 1)}`;
+            full = `${name}:${value.slice(0, 1)}`;
           } else continue;
-        }
-        if ((token.negated && !NEGATABLE_METATAGS.some(n => n === name)) || token.or) {
-          classified.invalid.push(full);
-          continue;
         }
         classified.metaTags.push(full);
       } else if (token.type === "tag") {
@@ -264,13 +266,9 @@ const FormatTags = (() => {
     if (mutuallyExclusiveTags.length > 1)
       noticeMsg += `😵 Messy counter tag${Utils.isPlural(mutuallyExclusiveTags.length)}: ${mutuallyExclusiveTags.map(tag => `<i><a class="tag-type-0" href="/posts?tags=${tag}" target="_blank">${tag}</a></i>`).join(", ")}<br>`;
 
-    const ignoredCategory = {
-      0: false,
-      1: ["artist_request", "tagme_(artist)", "official_art", "official_wallpaper", "novel_illustration", "promotional_art"].some(hasTag),
-      3: ["copyright_request", "series_request"].some(hasTag),
-      4: ["copyright_request", "series_request", "character_request", "tagme_(character)", "original"].some(hasTag),
-      5: true
-    };
+    ignoredCategory[1] |= ["artist_request", "tagme_(artist)", "official_art", "official_wallpaper", "novel_illustration", "promotional_art"].some(hasTag);
+    ignoredCategory[3] |= ["copyright_request", "series_request"].some(hasTag);
+    ignoredCategory[4] |= ["copyright_request", "series_request", "character_request", "tagme_(character)", "original"].some(hasTag);
     let emptyTags = {};
 
     for (const [name, tag] of tagMap.entries()) {
@@ -331,7 +329,7 @@ const FormatTags = (() => {
       const includedTags = tags.filter(tag => !tag.startsWith("-"));
       if (tags.length) {
         if (!compact) newText += classified.tagsByCategory[cat].join(" ") + "\n";
-        if (includedTags.length === 0) canBeIgnored = ignoredCategory[cat] || false;
+        if (includedTags.length === 0) canBeIgnored = canBeIgnored || false;
         else continue;
       }
       const name = cat === 0 ? "general" : cat === 1 ? "artist" : cat === 3 ? "copyright" : "character";

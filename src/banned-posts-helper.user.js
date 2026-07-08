@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name           Banned Posts Helper
 // @author         Sibyl
-// @version        0.94
+// @version        0.95
 // @icon           https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace      https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL    https://github.com/notsibyl/danbooru
+// @downloadURL    https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/banned-posts-helper.user.js
+// @updateURL      https://raw.githubusercontent.com/notsibyl/danbooru/refs/heads/main/src/banned-posts-helper.user.js
 // @description    This post has been removed because of a takedown request.
 // @match          *://*.donmai.us/*
 // @exclude-match  *://cdn.donmai.us/*
@@ -1364,9 +1366,11 @@ const HandlePostIndexPage = {
   },
   async fetchAllPosts(postContainer) {
     let showDeleted = Danbooru.CurrentUser.data("show-deleted-posts");
+    if (!showDeleted) {
     showDeleted =
       this.tokenizedTags.some(t => t.name === "status" && !t.negated && /^deleted|any|all$/.test(t.value)) ||
       this.tokenizedTags.some(t => t.name === "status" && t.negated && t.value === "deleted");
+    }
     try {
       const response = await fetch("/posts.json?" + Booru.searchParams.toString());
       let posts = await response.json();

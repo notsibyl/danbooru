@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          DejaVu Sans
 // @author        Sibyl
-// @version       1.1
+// @version       1.2
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -20,7 +20,7 @@
 
 // DejaVu Sans version 2.37
 
-GM_addStyle(`@font-face {
+if (!document.querySelector("script[src^='https://challenges.cloudflare.com/turnstile/']") && !window.hasOwnProperty('_cf_chl_opt')) GM_addStyle(`@font-face {
     font-family: "DejaVu Sans";
     src: url('${GM_getResourceURL("normal")}') format('woff2');
     font-weight: normal;

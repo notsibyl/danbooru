@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Full-width Character Converter
 // @author        Sibyl
-// @version       1.2
+// @version       1.3
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -26,7 +26,7 @@ const replacementMap = new Map([
 const maxMatchLength = Math.max(...[...replacementMap.keys()].map(k => k.length));
 
 function main() {
-  const contentEditableElements = document.querySelectorAll("input[data-autocomplete='tag-query'], textarea[data-autocomplete='tag-edit']");
+  const contentEditableElements = document.querySelectorAll(':is(input, textarea):is([data-autocomplete="tag-edit"], [data-autocomplete="tag-query"])');
   contentEditableElements.forEach(el => {
     el.addEventListener("input", function (e) {
       if (e.inputType && e.inputType.startsWith("delete")) return;

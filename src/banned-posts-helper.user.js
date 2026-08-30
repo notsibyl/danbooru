@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Banned Posts Helper
 // @author         Sibyl
-// @version        0.95
+// @version        0.96
 // @icon           https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace      https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL    https://github.com/notsibyl/danbooru
@@ -186,7 +186,7 @@ const Booru = {
           }
         } else if (metaName !== "source") quoted = quoted.replace(/\s/g, "_");
         if (metaName !== "source") value = value.replace(/\s/g, "_");
-        if (!["source", "newpool", "pool", "favgroup"].some(meta => metaName === meta)) value = value.toLowerCase();
+        if (!["source", "newpool", "pool", "newfavgroup", "favgroup"].some(meta => metaName === meta)) value = value.toLowerCase();
         tokens.push({ type: "metatag", name: metaName, value, negated, or, quoted });
         continue;
       }
@@ -815,14 +815,14 @@ const HandlePostShowPage = {
     let selectedType = "search",
       selectedValue;
     if (qs) {
-      const metatags = ["order", "ordfav", "ordpool", "pool", "favgroup", "ordfavgroup"];
+      const metatags = ["order", "ordvote", "ordfav", "ordpool", "pool", "favgroup", "ordfavgroup"];
       const tags = Booru.tokenizer(qs, metatags, true);
       const tag0Matched = metatags.find(meta => tags[0].name === meta);
       if (tags.length === 1 && !tags[0].negated && !tags[0].or && tag0Matched) {
         selectedType = tag0Matched.endsWith("pool") ? "pool" : tag0Matched.endsWith("favgroup") ? "favgroup" : null;
         selectedValue = tags[0].quoted || tags[0].value;
       } else {
-        const ng = ["order", "ordfav", "ordpool"];
+        const ng = ["order", "ordvote", "ordfav", "ordpool"];
         if (tags.find(m => ng.some(n => n === m.name))) selectedType = null;
       }
     }
@@ -848,6 +848,9 @@ const HandlePostShowPage = {
   },
   /* Phase II */
   patchBody(postInfo) {
+    const classList = document.body.classList;
+    classList.remove("c-static", "a-error");
+    classList.add("c-posts", "a-show");
     const dataset = {
       controller: "posts",
       action: "show",
@@ -1301,7 +1304,7 @@ const HandlePostShowPage = {
 
 const HandlePostIndexPage = {
   /* prettier-ignore */
-  SEARCH_METATAGS: ["age","ai","appealer","appeals","approver","arttags","chartags","child","comm","comment","commentary","commentaryupdater","commenter","comments","copytags","date","disapproved","downvote","downvotes","duration","exif","fav","favcount","favgroup","filesize","filetype","flagger","flags","gentags","has","height","id","is","limit","md5","metatags","mpixels","note","noter","notes","noteupdater","order","ordfav","ordfavgroup","ordpool","parent","pixiv","pool","rating","ratio","replacements","score","search","source","status","tagcount","upvote","upvotes","user","width"],
+  SEARCH_METATAGS: ["age","ai","appealer","appeals","approver","arttags","chartags","child","comm","comment","commentary","commentaryupdater","commenter","comments","copytags","date","disapproved","downvote","downvotes","duration","exif","fav","favcount","favgroup","filesize","filetype","flagger","flags","gentags","has","height","id","is","limit","md5","metatags","mpixels","note","noter","notes","noteupdater","order","ordvote","ordfav","ordfavgroup","ordpool","parent","pixiv","pool","rating","ratio","replacements","score","search","source","status","tagcount","upvote","upvotes","user","width"],
   postsPerPage: Danbooru.CurrentUser.data("per-page"),
   parseSearchParams() {
     this.tokenizedTags = Booru.tokenizer(Booru.searchParams.get("tags") || "", this.SEARCH_METATAGS, true);

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Format Tags
 // @author        Sibyl
-// @version       0.8
+// @version       0.9
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://dandonmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -83,7 +83,7 @@ const Booru = {
           }
         } else if (metaName !== "source") quoted = quoted.replace(/\s/g, "_");
         if (metaName !== "source") value = value.replace(/\s/g, "_");
-        if (!["source", "newpool", "pool", "favgroup"].some(meta => metaName === meta)) value = value.toLowerCase();
+        if (!["source", "newpool", "pool", "newfavgroup", "favgroup"].some(meta => metaName === meta)) value = value.toLowerCase();
         tokens.push({ type: "metatag", name: metaName, value, negated, or, quoted });
         continue;
       }
@@ -101,7 +101,7 @@ const Booru = {
 
 const FormatTags = (() => {
   /* prettier-ignore */
-  const EDIT_METATAGS = ["art","artist","ch","char","character","child","co","copy","copyright","disapproved","downvote","fav","favgroup","gen","general","meta","newpool","parent","pool","rating","source","status","upvote"];
+  const EDIT_METATAGS = ["art","artist","ch","char","character","child","co","copy","copyright","disapproved","downvote","fav","favgroup","gen","general","meta","newpool","newfavgroup","parent","pool","rating","source","status","upvote"];
   const NEGATABLE_METATAGS = ["child", "favgroup", "parent", "pool", "status"];
   /* prettier-ignore */
   const RECLASS_METATAGS = {

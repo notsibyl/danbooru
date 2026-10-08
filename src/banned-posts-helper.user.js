@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Banned Posts Helper
 // @author         Sibyl
-// @version        0.96
+// @version        0.97
 // @icon           https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace      https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL    https://github.com/notsibyl/danbooru
@@ -444,6 +444,7 @@ const BannedPostsHelper = {
     { similarity, query } = {}
   ) {
     const flags = is_pending ? "pending" : is_flagged ? "flagged" : is_deleted ? "deleted" : "";
+    if (type === 2) previewSize = "180";
     const classList = ["post-preview", "post-preview-" + previewSize, "post-preview-fit-compact"];
     is_pending && classList.push("post-status-pending");
     is_flagged && classList.push("post-status-flagged");

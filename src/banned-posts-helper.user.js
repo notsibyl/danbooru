@@ -742,7 +742,8 @@ const HandlePostShowPage = {
     return result;
   },
   async buildComment() {
-    const href = `/comments/new?comment[post_id]=${Booru.postId}`;
+    // const href = `/comments/new?comment[post_id]=${Booru.postId}`;
+    const href = `/comments/new?comment[post_id]=1`;
     const html = await (await fetch(href)).text();
     const doc = new DOMParser().parseFromString(html, "text/html");
     const form = doc.querySelector("form.simple_form.edit_comment");

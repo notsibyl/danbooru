@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          DejaVu Sans
 // @author        Sibyl
-// @version       1.2
+// @version       1.3
 // @icon          https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace     https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL   https://github.com/notsibyl/danbooru
@@ -22,28 +22,28 @@
 
 if (!document.querySelector("script[src^='https://challenges.cloudflare.com/turnstile/']") && !window.hasOwnProperty('_cf_chl_opt')) GM_addStyle(`@font-face {
     font-family: "DejaVu Sans";
-    src: url('${GM_getResourceURL("normal")}') format('woff2');
+    src: url('${GM_getResourceURL("normal", false)}') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap
 }
 @font-face {
     font-family: "DejaVu Sans";
-    src: url('${GM_getResourceURL("bold")}') format('woff2');
+    src: url('${GM_getResourceURL("bold", false)}') format('woff2');
     font-weight: bold;
     font-style: normal;
     font-display: swap
 }
 @font-face {
     font-family: "DejaVu Sans";
-    src: url('${GM_getResourceURL("oblique")}') format('woff2');
+    src: url('${GM_getResourceURL("oblique", false)}') format('woff2');
     font-weight: normal;
     font-style: italic;
     font-display: swap
 }
 @font-face {
     font-family: "DejaVu Sans";
-    src: url('${GM_getResourceURL("boldoblique")}') format('woff2');
+    src: url('${GM_getResourceURL("boldoblique", false)}') format('woff2');
     font-weight: bold;
     font-style: italic;
     font-display: swap

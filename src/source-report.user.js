@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Source Report
 // @author      Sibyl
-// @version     1.27
+// @version     1.28
 // @icon        https://cdn.jsdelivr.net/gh/notsibyl/danbooru@main/danbooru.svg
 // @namespace   https://danbooru.donmai.us/forum_posts?search[creator_id]=817128&search[topic_id]=8502
 // @homepageURL https://github.com/notsibyl/danbooru
@@ -92,6 +92,8 @@ const sourceType = [
     search: "source:*www.mihuashi.com"
   }
 ];
+
+const wait = (ms = 1e3) => new Promise(resolve => setTimeout(resolve, ms));
 
 const createElement = (tag, props = {}) => {
   const el = document.createElement(tag);
@@ -242,28 +244,76 @@ const sourceReport = {
     this.container.hidden = false;
     if (!this.chartData) this.load();
   },
+  rateLimitUntil: 0,
+  async checkRateLimit() {
+    const t = this.rateLimitUntil - Date.now();
+    if (t > 0) await wait(t);
+  },
   async fetchCounts(tags = "") {
     let date = "";
     if (this.from || this.to) date = ` date:${this.from}..${this.to}`;
     tags = `user:${this.userName} ${tags}${date}`;
-    return new Promise(resolve => {
-      fetch(`/counts/posts.json?tags=${encodeURIComponent(tags)}`)
-        .then(resp => resp.json())
-        .then(data => resolve(data))
-        .catch(error => {
-          Danbooru.Notice.error(`Failed to fetch counts: ${error}`);
-          console.error(tags);
-          resolve({ counts: { posts: 0 } });
-        });
-    });
+    const url = `/counts/posts.json?tags=${encodeURIComponent(tags)}`;
+
+    for (let retry = 0; retry < 10; retry++) {
+      try {
+        await this.checkRateLimit();
+
+        const resp = await fetch(url);
+        if (resp.status === 429) {
+          let t = 1000;
+          const rateLimitHeader = resp.headers.get("x-rate-limit");
+          if (rateLimitHeader) {
+            try {
+              const rateLimit = JSON.parse(rateLimitHeader);
+              const cost = rateLimit.cost ?? 1;
+              const rate = rateLimit.rate ?? 1;
+              const points = Object.values(rateLimit.limits || {});
+              if (points.length > 0) {
+                const minPoints = Math.min(...points);
+                const pointsNeeded = cost - minPoints;
+                const waitSec = pointsNeeded > 0 ? pointsNeeded / rate : 1;
+                t = Math.ceil(waitSec * 1000) + 200;
+              }
+            } catch (e) {
+              console.warn("Failed to parse x-rate-limit header:", e);
+            }
+          }
+          this.rateLimitUntil = Math.max(this.rateLimitUntil, Date.now() + t);
+          await wait(t);
+          continue;
+        }
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return await resp.json();
+      } catch (error) {
+        Danbooru.Notice.error(`Failed to fetch counts: ${error}`);
+        console.error(tags);
+        return { counts: { posts: 0 } };
+      }
+    }
+    Danbooru.Notice.error("Failed to fetch counts: Rate limit exceeded maximum retries");
+    return { counts: { posts: 0 } };
   },
-  fetchAll() {
-    const promises = sourceType.map(type => {
-      return this.fetchCounts(type.search).then(({ counts }) => {
-        return { name: type.name, value: counts.posts };
-      });
-    });
-    return Promise.all(promises);
+  async fetchAll() {
+    const results = new Array(sourceType.length);
+    let completed = 0;
+    const concurrency = 3;
+    let nextIndex = 0;
+
+    const worker = async () => {
+      while (nextIndex < sourceType.length) {
+        const index = nextIndex++;
+        const type = sourceType[index];
+        const { counts } = await this.fetchCounts(type.search);
+        results[index] = { name: type.name, value: counts.posts };
+        completed++;
+        this.fetchButton.textContent = `Counting (${completed}/${sourceType.length})...`;
+      }
+    };
+
+    const workers = Array.from({ length: Math.min(concurrency, sourceType.length) }, () => worker());
+    await Promise.all(workers);
+    return results;
   },
   load() {
     if (!this.chartInstance) this.fetchButton.textContent = "Loading ECharts...";
